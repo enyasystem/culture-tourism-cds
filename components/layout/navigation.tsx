@@ -51,7 +51,7 @@ export function Navigation() {
                 </svg>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-gray-900">Peace & Tourism</h1>
+                <h1 className="text-xl font-bold text-gray-900">Culture & Tourism</h1>
               </div>
             </Link>
 

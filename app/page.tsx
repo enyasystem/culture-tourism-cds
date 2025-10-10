@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Navigation } from "@/components/layout/navigation"
 import { UserOnboarding } from "@/components/onboarding/user-onboarding"
+import { Github } from "lucide-react"
 
 export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -55,7 +56,23 @@ export default function HomePage() {
       mainImage: "/shere-hills-jos-plateau-landscape.jpg",
       destinations: featuredDestinations,
     },
+    {
+      mainImage: "/national-museum-jos-cultural-artifacts.jpg",
+      destinations: featuredDestinations,
+    },
+    {
+      mainImage: "/jos-wildlife-park-plateau-state.jpg",
+      destinations: featuredDestinations,
+    },
   ]
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -81,15 +98,15 @@ export default function HomePage() {
             {/* Left Side - Text Content */}
             <div className="text-white space-y-6 lg:space-y-8">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight uppercase">
-                EXPLORE YOUR
+                DISCOVER JOS
                 <br />
-                DREAM PLACE
+                CULTURAL
                 <br />
-                WITH US
+                HERITAGE
               </h1>
               <p className="text-lg sm:text-xl lg:text-2xl text-white/90 leading-relaxed max-w-xl italic">
-                Make the experience of traveling to your dream tourist destination come true with us. We will provide
-                the best experience of your life.
+                Join Culture & Tourism CDS in exploring Jos's rich cultural heritage, promoting peace through tourism,
+                and documenting the treasures of Plateau State for future generations.
               </p>
             </div>
 
@@ -121,13 +138,18 @@ export default function HomePage() {
                   alt="Featured Destination"
                   className="w-full h-[300px] sm:h-[400px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                {/* Navigation Arrows */}
-                <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <button className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -732,7 +754,7 @@ export default function HomePage() {
                   <span className="text-primary-foreground font-bold text-lg">P</span>
                 </div>
                 <div>
-                  <span className="font-bold text-xl">Peace & Tourism</span>
+                  <span className="font-bold text-lg">Peace & Tourism</span>
                   <p className="text-xs text-muted-foreground">CDS Platform</p>
                 </div>
               </div>
@@ -800,9 +822,17 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t mt-12 pt-8 text-center text-muted-foreground">
-            <p>
-              &copy; 2025 Peace & Tourism CDS Platform. Developed by{" "}
-              <span className="text-primary font-semibold">Enya Elvis (3367)</span>
+            <p className="flex justify-center items-center flex-wrap gap-1">
+              &copy; 2025 Culture & Tourism CDS Platform. Designed & Developed by{" "}
+              <span className="text-primary font-semibold mx-1">Enya Elvis (PL/24C/3367)</span>
+              <a
+                href="https://github.com/enyasystem"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Github className="w-5 h-5 ml-1" />
+              </a>
             </p>
           </div>
         </div>
