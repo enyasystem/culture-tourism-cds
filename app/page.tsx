@@ -9,12 +9,14 @@ import { UserOnboarding } from "@/components/onboarding/user-onboarding"
 export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding")
     if (!hasSeenOnboarding) {
       setShowOnboarding(true)
     }
+    setIsVisible(true)
   }, [])
 
   const handleOnboardingComplete = () => {
@@ -96,7 +98,11 @@ export default function HomePage() {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-8rem)]">
             {/* Left Side - Text Content */}
-            <div className="text-white space-y-6 lg:space-y-8">
+            <div
+              className={`text-white space-y-6 lg:space-y-8 transition-all duration-1000 ${
+                isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+              }`}
+            >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight uppercase">
                 DISCOVER JOS
                 <br />
@@ -111,13 +117,17 @@ export default function HomePage() {
             </div>
 
             {/* Right Side - Search and Featured Cards */}
-            <div className="space-y-6">
+            <div
+              className={`space-y-6 transition-all duration-1000 delay-300 ${
+                isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+              }`}
+            >
               {/* Search Bar */}
-              <div className="relative">
+              <div className="relative animate-in fade-in slide-in-from-top duration-700 delay-500">
                 <input
                   type="text"
                   placeholder="Explore Here..."
-                  className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl"
+                  className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl transition-all hover:shadow-2xl"
                 />
                 <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +142,7 @@ export default function HomePage() {
               </div>
 
               {/* Main Featured Image */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl group animate-in fade-in zoom-in-95 duration-700 delay-700">
                 <img
                   src={slides[currentSlide].mainImage || "/placeholder.svg"}
                   alt="Featured Destination"
@@ -140,7 +150,7 @@ export default function HomePage() {
                 />
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all hover:scale-110"
                 >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -148,7 +158,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all hover:scale-110"
                 >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -158,10 +168,11 @@ export default function HomePage() {
 
               {/* Three Destination Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {slides[currentSlide].destinations.map((destination) => (
+                {slides[currentSlide].destinations.map((destination, index) => (
                   <div
                     key={destination.id}
-                    className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full"
+                    className={`bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full animate-in fade-in slide-in-from-bottom duration-700`}
+                    style={{ animationDelay: `${900 + index * 100}ms` }}
                   >
                     <div className="aspect-[4/3] relative overflow-hidden">
                       <img
@@ -177,7 +188,7 @@ export default function HomePage() {
                       </div>
                       <div className="flex justify-end mt-3">
                         <Link href={`/sites/${destination.id}`}>
-                          <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-colors">
+                          <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all hover:scale-105">
                             Read More
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -191,13 +202,13 @@ export default function HomePage() {
               </div>
 
               {/* Carousel Indicators */}
-              <div className="flex justify-center gap-2 pt-4">
+              <div className="flex justify-center gap-2 pt-4 animate-in fade-in duration-700 delay-1000">
                 {slides.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all ${
-                      currentSlide === index ? "bg-white w-8" : "bg-white/50"
+                    className={`h-3 rounded-full transition-all duration-300 ${
+                      currentSlide === index ? "bg-white w-8" : "bg-white/50 w-3"
                     }`}
                   />
                 ))}
