@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 

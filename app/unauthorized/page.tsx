@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShieldX, ArrowLeft } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+
 export default function UnauthorizedPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
