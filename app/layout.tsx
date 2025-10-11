@@ -30,10 +30,10 @@ export const metadata: Metadata = {
     siteName: "Culture & Tourism CDS Platform",
     images: [
       {
-        url: "/logo-social.jpg",
+        url: "/logo-social.png",
         width: 1200,
         height: 630,
-        alt: "Culture & Tourism CDS Platform",
+        alt: "Jos North Culture & Tourism CDS Platform",
       },
     ],
     locale: "en_NG",
@@ -43,12 +43,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Culture & Tourism CDS | Jos, Plateau State",
     description: "Empowering NYSC corps members to explore Jos's rich cultural heritage",
-    images: ["/logo-social.jpg"],
+    images: ["/logo-social.png"],
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.jpg",
-    apple: "/apple-touch-icon.jpg",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
   },
 }
 
