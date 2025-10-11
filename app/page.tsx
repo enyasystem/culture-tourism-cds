@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Navigation } from "@/components/layout/navigation"
+import { Footer } from "@/components/layout/footer"
 import { UserOnboarding } from "@/components/onboarding/user-onboarding"
-import { Github } from "lucide-react"
 
 export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -539,7 +539,7 @@ export default function HomePage() {
                     Feb 15
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-1">
+                <div className="flex flex-col flex-1">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Cultural Heritage Workshop</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -590,7 +590,7 @@ export default function HomePage() {
                     Feb 20
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-1">
+                <div className="flex flex-col flex-1">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Shere Hills Hiking Tour</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -641,7 +641,7 @@ export default function HomePage() {
                     Feb 25
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-1">
+                <div className="flex flex-col flex-1">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Wildlife Conservation Talk</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -692,7 +692,7 @@ export default function HomePage() {
                     Mar 1
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-1">
+                <div className="flex flex-col flex-1">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Peace Building Forum</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -745,98 +745,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-b from-card to-muted/30 border-t py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12">
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                  <span className="text-primary-foreground font-bold text-lg">P</span>
-                </div>
-                <div>
-                  <span className="font-bold text-lg">Peace & Tourism</span>
-                  <p className="text-xs text-muted-foreground">CDS Platform</p>
-                </div>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                Empowering Peace and Tourism CDS members to explore Jos's cultural heritage, promote peaceful
-                coexistence, and develop sustainable tourism initiatives in Plateau State.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6 text-foreground">Explore</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li>
-                  <a href="/sites" className="hover:text-primary transition-colors font-medium">
-                    Cultural Sites
-                  </a>
-                </li>
-                <li>
-                  <a href="/events" className="hover:text-primary transition-colors font-medium">
-                    Peace Events
-                  </a>
-                </li>
-                <li>
-                  <a href="/stories" className="hover:text-primary transition-colors font-medium">
-                    CDS Stories
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6 text-foreground">Community</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors font-medium">
-                    Peace & Tourism CDS
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors font-medium">
-                    Local Communities
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary transition-colors font-medium">
-                    Tourism Board
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-6 text-foreground">Contact</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex items-center space-x-2">
-                  <span>📧</span>
-                  <span>peacetourism@josculture.ng</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <span>📞</span>
-                  <span>+234 xxx xxx xxxx</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <span>📍</span>
-                  <span>Jos, Plateau State</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-12 pt-8 text-center text-muted-foreground">
-            <p className="flex justify-center items-center flex-wrap gap-1">
-              &copy; 2025 Culture & Tourism CDS Platform. Designed & Developed by{" "}
-              <span className="text-primary font-semibold mx-1">Enya Elvis (PL/24C/3367)</span>
-              <a
-                href="https://github.com/enyasystem"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Github className="w-5 h-5 ml-1" />
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   )
 }

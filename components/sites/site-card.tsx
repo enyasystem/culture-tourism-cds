@@ -26,7 +26,7 @@ export function SiteCard({ site }: SiteCardProps) {
   const [isLiked, setIsLiked] = useState(site.isLiked || false)
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden p-0">
       <div className="relative overflow-hidden">
         <img
           src={site.image || "/placeholder.svg"}

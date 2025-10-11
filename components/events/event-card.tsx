@@ -38,7 +38,7 @@ export function EventCard({ event }: EventCardProps) {
   const dateInfo = formatDate(event.date)
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden p-0">
       <div className="relative overflow-hidden">
         <img
           src={event.image || "/placeholder.svg"}
