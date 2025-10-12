@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,14 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ currentPath = "/admin" }: AdminSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_session")
+    localStorage.removeItem("admin_username")
+    localStorage.removeItem("admin_login_time")
+    router.push("/admin/login")
+  }
 
   return (
     <div className={`bg-card border-r border-border transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
@@ -87,7 +96,11 @@ export function AdminSidebar({ currentPath = "/admin" }: AdminSidebarProps) {
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
-          <Button variant="ghost" className={`w-full justify-start gap-3 ${isCollapsed ? "px-2" : "px-3"}`}>
+          <Button
+            variant="ghost"
+            className={`w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 ${isCollapsed ? "px-2" : "px-3"}`}
+            onClick={handleLogout}
+          >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             {!isCollapsed && <span>Logout</span>}
           </Button>

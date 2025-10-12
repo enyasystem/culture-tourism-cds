@@ -1,17 +1,13 @@
 "use client"
 
-import React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { EventCard } from "@/components/events/event-card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
-import { NoEventsFound } from "@/components/ui/empty-states"
-import { EventCardSkeleton } from "@/components/ui/loading-states"
-import { Calendar, Search, Filter, Plus } from "lucide-react"
+import { Calendar, Search, Filter, Plus, TrendingUp, Users, MapPin, Sparkles } from "lucide-react"
 
 const upcomingEvents = [
   {
@@ -113,6 +109,11 @@ export default function EventsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All Events")
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
 
   const handleFilterChange = () => {
     setIsLoading(true)
@@ -138,56 +139,170 @@ export default function EventsPage() {
     }, 500)
   }
 
-  const { useEffect } = React
   useEffect(() => {
     handleFilterChange()
   }, [searchQuery, selectedCategory])
+
+  const totalAttendees = upcomingEvents.reduce((sum, event) => sum + event.attendees, 0)
+  const featuredEvent = upcomingEvents[0]
 
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <BreadcrumbNav className="mb-6" />
+      <section className="relative pt-24 pb-16 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=800&width=1600')] bg-cover bg-center opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A7B7B] to-transparent" />
 
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
-              Cultural Events
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            className="text-center mb-12 transition-all duration-1000 ease-out"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "translateY(0)" : "translateY(30px)",
+            }}
+          >
+            <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-white/30">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Cultural Events & Festivals
             </Badge>
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
-              Jos Cultural Events & Festivals
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 text-balance">
+              Discover Jos Cultural Events
             </h1>
-            <p className="text-xl text-muted-foreground text-pretty max-w-3xl mx-auto">
-              Join upcoming cultural events, festivals, and CDS activities. Connect with fellow corps members and
-              immerse yourself in Jos's vibrant cultural scene.
+            <p className="text-xl text-white/90 text-pretty max-w-3xl mx-auto">
+              Join exciting cultural events, festivals, and CDS activities across Jos, Plateau State
             </p>
           </div>
 
-          <div className="space-y-6 mb-8">
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 transition-all duration-1000 ease-out delay-200"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "translateY(0)" : "translateY(30px)",
+            }}
+          >
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">{upcomingEvents.length}</div>
+                  <div className="text-white/80 text-sm">Upcoming Events</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">{totalAttendees}+</div>
+                  <div className="text-white/80 text-sm">Total Attendees</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">{categories.length - 1}</div>
+                  <div className="text-white/80 text-sm">Event Categories</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {featuredEvent && (
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 transition-all duration-1000 ease-out delay-300"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(30px)",
+              }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-white" />
+                <span className="text-white font-semibold">Featured Event</span>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <Badge className="mb-3 bg-white/20 text-white border-white/30">{featuredEvent.category}</Badge>
+                  <h3 className="text-3xl font-bold text-white mb-3">{featuredEvent.title}</h3>
+                  <p className="text-white/90 mb-6 leading-relaxed">{featuredEvent.description}</p>
+                  <div className="flex flex-wrap gap-4 mb-6 text-white/90">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span className="text-sm">
+                        {new Date(featuredEvent.date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm">{featuredEvent.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm">{featuredEvent.attendees} attending</span>
+                    </div>
+                  </div>
+                  <Button size="lg" className="bg-white text-[#1A7B7B] hover:bg-white/90">
+                    Register Now
+                  </Button>
+                </div>
+                <div className="relative h-80 rounded-2xl overflow-hidden">
+                  <img
+                    src={featuredEvent.image || "/placeholder.svg"}
+                    alt={featuredEvent.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-6 mb-12">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   placeholder="Search events, festivals, workshops..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-12 h-14 text-base rounded-xl border-2 focus:border-[#1A7B7B]"
                 />
               </div>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
+              <Button size="lg" className="gap-2 bg-[#1A7B7B] hover:bg-[#0F766E] h-14 px-8">
+                <Plus className="w-5 h-5" />
                 <span>Create Event</span>
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {categories.map((category) => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
+                  size="lg"
                   onClick={() => setSelectedCategory(category)}
+                  className={`rounded-full px-6 transition-all duration-300 ${
+                    selectedCategory === category
+                      ? "bg-[#1A7B7B] hover:bg-[#0F766E] text-white shadow-lg scale-105"
+                      : "hover:border-[#1A7B7B] hover:text-[#1A7B7B]"
+                  }`}
                 >
                   {category}
                 </Button>
@@ -196,40 +311,68 @@ export default function EventsPage() {
           </div>
 
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-semibold text-foreground">
+            <h2 className="text-3xl font-bold text-foreground">
               {isLoading ? "Loading..." : `${filteredEvents.length} Upcoming Events`}
             </h2>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="lg" className="gap-2 rounded-xl bg-transparent">
+                <Filter className="w-4 h-4" />
                 <span>More Filters</span>
               </Button>
-              <Button variant="outline" size="sm">
-                <Calendar className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="lg" className="gap-2 rounded-xl bg-transparent">
+                <Calendar className="w-4 h-4" />
                 <span>Calendar View</span>
               </Button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {Array.from({ length: 6 }).map((_, i) => (
-                <EventCardSkeleton key={i} />
+                <div key={i} className="animate-pulse">
+                  <div className="bg-muted rounded-2xl h-96" />
+                </div>
               ))}
             </div>
           ) : (
             <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {filteredEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredEvents.map((event, index) => (
+                  <div
+                    key={event.id}
+                    className="transition-all duration-700 ease-out"
+                    style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? "translateY(0)" : "translateY(50px)",
+                      transitionDelay: `${index * 100}ms`,
+                    }}
+                  >
+                    <EventCard event={event} />
+                  </div>
                 ))}
               </div>
 
-              {filteredEvents.length === 0 && <NoEventsFound />}
+              {filteredEvents.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Calendar className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-2">No events found</h3>
+                  <p className="text-muted-foreground mb-6">Try adjusting your search or filters</p>
+                  <Button
+                    onClick={() => {
+                      setSearchQuery("")
+                      setSelectedCategory("All Events")
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
-      </div>
+      </section>
 
       <Footer />
     </main>

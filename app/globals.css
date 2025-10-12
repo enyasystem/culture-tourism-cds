@@ -224,3 +224,21 @@
     rgba(143, 152, 255, 0.04);
   transform: translateY(-4px);
 }
+
+/* Added 3D flip animation utilities for card hover effects */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -11,12 +11,47 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
 
+  const aboutRef = useRef<HTMLElement>(null)
+  const howItWorksRef = useRef<HTMLElement>(null)
+  const categoriesRef = useRef<HTMLElement>(null)
+  const eventsRef = useRef<HTMLElement>(null)
+
+  const [aboutVisible, setAboutVisible] = useState(false)
+  const [howItWorksVisible, setHowItWorksVisible] = useState(false)
+  const [categoriesVisible, setCategoriesVisible] = useState(false)
+  const [eventsVisible, setEventsVisible] = useState(false)
+
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding")
     if (!hasSeenOnboarding) {
       setShowOnboarding(true)
     }
     setIsVisible(true)
+
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: "0px 0px -100px 0px",
+    }
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          if (entry.target === aboutRef.current) setAboutVisible(true)
+          if (entry.target === howItWorksRef.current) setHowItWorksVisible(true)
+          if (entry.target === categoriesRef.current) setCategoriesVisible(true)
+          if (entry.target === eventsRef.current) setEventsVisible(true)
+        }
+      })
+    }
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions)
+
+    if (aboutRef.current) observer.observe(aboutRef.current)
+    if (howItWorksRef.current) observer.observe(howItWorksRef.current)
+    if (categoriesRef.current) observer.observe(categoriesRef.current)
+    if (eventsRef.current) observer.observe(eventsRef.current)
+
+    return () => observer.disconnect()
   }, [])
 
   const handleOnboardingComplete = () => {
@@ -171,28 +206,61 @@ export default function HomePage() {
                 {slides[currentSlide].destinations.map((destination, index) => (
                   <div
                     key={destination.id}
-                    className={`bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full animate-in fade-in slide-in-from-bottom duration-700`}
+                    className={`group perspective-1000 animate-in fade-in slide-in-from-bottom duration-700`}
                     style={{ animationDelay: `${900 + index * 100}ms` }}
                   >
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <img
-                        src={destination.image || "/placeholder.svg"}
-                        alt={destination.name}
-                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 text-base">{destination.name}</h3>
-                        <p className="text-sm text-gray-600">{destination.location}</p>
+                    <div className="relative w-full h-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                      {/* Front Face */}
+                      <div className="absolute inset-0 backface-hidden bg-white rounded-3xl overflow-hidden shadow-xl flex flex-col">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <img
+                            src={destination.image || "/placeholder.svg"}
+                            alt={destination.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="p-4 flex flex-col flex-1">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-base">{destination.name}</h3>
+                            <p className="text-sm text-gray-600">{destination.location}</p>
+                          </div>
+                          <div className="flex justify-end mt-3">
+                            <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all">
+                              Read More
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-end mt-3">
-                        <Link href={`/sites/${destination.id}`}>
-                          <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all hover:scale-105">
-                            Read More
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+
+                      {/* Back Face */}
+                      <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl overflow-hidden shadow-xl flex flex-col p-6 text-white">
+                        <h3 className="font-bold text-lg mb-3">{destination.name}</h3>
+                        <p className="text-sm text-white/90 mb-4 flex-1">{destination.description}</p>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
+                            <span>4.8 Rating</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span>Open Daily</span>
+                          </div>
+                        </div>
+                        <Link href={`/sites/${destination.id}`} className="w-full">
+                          <button className="w-full bg-white text-[#1A7B7B] py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-all">
+                            Explore Now
                           </button>
                         </Link>
                       </div>
@@ -219,7 +287,12 @@ export default function HomePage() {
       </section>
 
       {/* About Culture & Tourism CDS Section */}
-      <section className="py-20 bg-white">
+      <section
+        ref={aboutRef}
+        className={`py-20 bg-white transition-all duration-1000 ${
+          aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -231,7 +304,11 @@ export default function HomePage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
+              <div
+                className={`space-y-6 transition-all duration-1000 delay-200 ${
+                  aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                }`}
+              >
                 <div className="bg-gradient-to-br from-[#1A7B7B]/10 to-[#0F766E]/5 p-8 rounded-3xl">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
                   <p className="text-gray-700 leading-relaxed">
@@ -264,7 +341,11 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="relative">
+              <div
+                className={`relative transition-all duration-1000 delay-400 ${
+                  aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+                }`}
+              >
                 <div className="rounded-3xl overflow-hidden shadow-2xl">
                   <img
                     src="/national-museum-jos-cultural-artifacts.jpg"
@@ -283,7 +364,12 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section
+        ref={howItWorksRef}
+        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1000 ${
+          howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -296,7 +382,11 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-4 gap-8">
               {/* Step 1 */}
-              <div className="relative">
+              <div
+                className={`relative transition-all duration-700 delay-200 ${
+                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,7 +407,11 @@ export default function HomePage() {
               </div>
 
               {/* Step 2 */}
-              <div className="relative">
+              <div
+                className={`relative transition-all duration-700 delay-300 ${
+                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +432,11 @@ export default function HomePage() {
               </div>
 
               {/* Step 3 */}
-              <div className="relative">
+              <div
+                className={`relative transition-all duration-700 delay-400 ${
+                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,7 +457,11 @@ export default function HomePage() {
               </div>
 
               {/* Step 4 */}
-              <div className="relative">
+              <div
+                className={`relative transition-all duration-700 delay-500 ${
+                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -381,7 +483,11 @@ export default function HomePage() {
             </div>
 
             {/* CTA Button */}
-            <div className="text-center mt-12">
+            <div
+              className={`text-center mt-12 transition-all duration-700 delay-600 ${
+                howItWorksVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            >
               <Link href="/auth/signup">
                 <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
                   Get Started Today
@@ -393,7 +499,12 @@ export default function HomePage() {
       </section>
 
       {/* Explore by Category Section */}
-      <section className="py-20 bg-white">
+      <section
+        ref={categoriesRef}
+        className={`py-20 bg-white transition-all duration-1000 ${
+          categoriesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -406,127 +517,328 @@ export default function HomePage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Museums & Heritage */}
-              <Link href="/sites?category=museums" className="h-full">
-                <div className="group bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col h-full">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      />
-                    </svg>
+              <div
+                className={`group perspective-1000 transition-all duration-700 ${
+                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                }`}
+                style={{ transitionDelay: categoriesVisible ? "200ms" : "0ms" }}
+              >
+                <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                  {/* Front Face */}
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                    <div>
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3">Museums & Heritage</h3>
+                      <p className="text-white/90 mb-4">Explore archaeological sites and cultural museums</p>
+                    </div>
+                    <div className="flex items-center text-sm font-semibold">
+                      <span>Discover More</span>
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Museums & Heritage</h3>
-                  <p className="text-white/90 mb-4 flex-1">Explore archaeological sites and cultural museums</p>
-                  <div className="flex items-center text-sm font-semibold">
-                    <span>Discover More</span>
-                    <svg
-                      className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+
+                  {/* Back Face */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl p-8 shadow-lg flex flex-col justify-between border-2 border-[#1A7B7B]">
+                    <div>
+                      <h3 className="text-2xl font-bold text-[#1A7B7B] mb-4">Museums & Heritage</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">12 Heritage Sites</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">National Museum Jos</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Archaeological Sites</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link href="/sites?category=museums" className="w-full">
+                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all">
+                        Explore Now
+                      </button>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
 
               {/* Natural Attractions */}
-              <Link href="/sites?category=nature" className="h-full">
-                <div className="group bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col h-full">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+              <div
+                className={`group perspective-1000 transition-all duration-700 ${
+                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                }`}
+                style={{ transitionDelay: categoriesVisible ? "300ms" : "0ms" }}
+              >
+                <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                  {/* Front Face */}
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                    <div>
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3">Natural Attractions</h3>
+                      <p className="text-white/90 mb-4">Experience breathtaking landscapes and wildlife</p>
+                    </div>
+                    <div className="flex items-center text-sm font-semibold">
+                      <span>Discover More</span>
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Natural Attractions</h3>
-                  <p className="text-white/90 mb-4 flex-1">Experience breathtaking landscapes and wildlife</p>
-                  <div className="flex items-center text-sm font-semibold">
-                    <span>Discover More</span>
-                    <svg
-                      className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+
+                  {/* Back Face */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl p-8 shadow-lg flex flex-col justify-between border-2 border-[#0F766E]">
+                    <div>
+                      <h3 className="text-2xl font-bold text-[#0F766E] mb-4">Natural Attractions</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">8 Natural Sites</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Shere Hills</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Wildlife Park</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link href="/sites?category=nature" className="w-full">
+                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all">
+                        Explore Now
+                      </button>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
 
               {/* Festivals & Events */}
-              <Link href="/events" className="h-full">
-                <div className="group bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col h-full">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+              <div
+                className={`group perspective-1000 transition-all duration-700 ${
+                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                }`}
+                style={{ transitionDelay: categoriesVisible ? "400ms" : "0ms" }}
+              >
+                <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                  {/* Front Face */}
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                    <div>
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3">Festivals & Events</h3>
+                      <p className="text-white/90 mb-4">Join cultural celebrations and CDS activities</p>
+                    </div>
+                    <div className="flex items-center text-sm font-semibold">
+                      <span>Discover More</span>
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Festivals & Events</h3>
-                  <p className="text-white/90 mb-4 flex-1">Join cultural celebrations and CDS activities</p>
-                  <div className="flex items-center text-sm font-semibold">
-                    <span>Discover More</span>
-                    <svg
-                      className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+
+                  {/* Back Face */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl p-8 shadow-lg flex flex-col justify-between border-2 border-[#1A7B7B]">
+                    <div>
+                      <h3 className="text-2xl font-bold text-[#1A7B7B] mb-4">Festivals & Events</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">15+ Annual Events</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Cultural Festivals</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#1A7B7B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">CDS Activities</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link href="/events" className="w-full">
+                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all">
+                        View Events
+                      </button>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
 
               {/* Historical Sites */}
-              <Link href="/sites?category=historical" className="h-full">
-                <div className="group bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col h-full">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
+              <div
+                className={`group perspective-1000 transition-all duration-700 ${
+                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                }`}
+                style={{ transitionDelay: categoriesVisible ? "500ms" : "0ms" }}
+              >
+                <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                  {/* Front Face */}
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                    <div>
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3">Historical Sites</h3>
+                      <p className="text-white/90 mb-4">Discover Jos's rich historical landmarks</p>
+                    </div>
+                    <div className="flex items-center text-sm font-semibold">
+                      <span>Discover More</span>
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Historical Sites</h3>
-                  <p className="text-white/90 mb-4 flex-1">Discover Jos's rich historical landmarks</p>
-                  <div className="flex items-center text-sm font-semibold">
-                    <span>Discover More</span>
-                    <svg
-                      className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+
+                  {/* Back Face */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl p-8 shadow-lg flex flex-col justify-between border-2 border-[#0F766E]">
+                    <div>
+                      <h3 className="text-2xl font-bold text-[#0F766E] mb-4">Historical Sites</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">10 Historical Sites</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Colonial Buildings</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-[#0F766E] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm">Ancient Landmarks</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link href="/sites?category=historical" className="w-full">
+                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all">
+                        Explore Now
+                      </button>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Featured Upcoming Events Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section
+        ref={eventsRef}
+        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1000 ${
+          eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -539,7 +851,12 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Event 1 */}
-              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+              <div
+                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
+                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ transitionDelay: eventsVisible ? "200ms" : "0ms" }}
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src="/national-museum-jos-cultural-artifacts.jpg"
@@ -550,7 +867,7 @@ export default function HomePage() {
                     Feb 15
                   </div>
                 </div>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 p-6">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Cultural Heritage Workshop</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -590,7 +907,12 @@ export default function HomePage() {
               </div>
 
               {/* Event 2 */}
-              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+              <div
+                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
+                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ transitionDelay: eventsVisible ? "300ms" : "0ms" }}
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src="/shere-hills-jos-plateau-landscape.jpg"
@@ -601,7 +923,7 @@ export default function HomePage() {
                     Feb 20
                   </div>
                 </div>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 p-6">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Shere Hills Hiking Tour</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -641,7 +963,12 @@ export default function HomePage() {
               </div>
 
               {/* Event 3 */}
-              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+              <div
+                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
+                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ transitionDelay: eventsVisible ? "400ms" : "0ms" }}
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src="/jos-wildlife-park-plateau-state.jpg"
@@ -652,7 +979,7 @@ export default function HomePage() {
                     Feb 25
                   </div>
                 </div>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 p-6">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Wildlife Conservation Talk</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -692,7 +1019,12 @@ export default function HomePage() {
               </div>
 
               {/* Event 4 */}
-              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+              <div
+                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
+                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ transitionDelay: eventsVisible ? "500ms" : "0ms" }}
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src="/abstract-cultural-pattern-jos-plateau.jpg"
@@ -703,7 +1035,7 @@ export default function HomePage() {
                     Mar 1
                   </div>
                 </div>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 p-6">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Peace Building Forum</h3>
                     <p className="text-gray-600 text-sm mb-3">
@@ -744,7 +1076,11 @@ export default function HomePage() {
             </div>
 
             {/* View All Events Button */}
-            <div className="text-center mt-12">
+            <div
+              className={`text-center mt-12 transition-all duration-700 delay-600 ${
+                eventsVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            >
               <Link href="/events">
                 <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300">
                   View All Events

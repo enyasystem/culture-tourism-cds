@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { StoryCard } from "@/components/stories/story-card"
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { NoStoriesFound } from "@/components/ui/empty-states"
 import { StoryCardSkeleton } from "@/components/ui/loading-states"
-import { Search, Plus, TrendingUp, Clock } from "lucide-react"
+import { Search, Plus, TrendingUp, Clock, Sparkles, Heart, Eye } from "lucide-react"
 
 const corpsStories = [
   {
@@ -119,33 +119,97 @@ const sortOptions = [
   { value: "popular", label: "Most Popular", icon: TrendingUp },
 ]
 
+const allTags = [
+  "wildlife",
+  "nature",
+  "culture",
+  "museum",
+  "hiking",
+  "adventure",
+  "CDS",
+  "community",
+  "market",
+  "traditional",
+]
+
 export default function StoriesPage() {
   const [filteredStories, setFilteredStories] = useState(corpsStories)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("recent")
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const heroRef = useRef<HTMLDivElement>(null)
+  const storiesRef = useRef<HTMLDivElement>(null)
+  const [isHeroVisible, setIsHeroVisible] = useState(false)
+  const [isStoriesVisible, setIsStoriesVisible] = useState(false)
+
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: "0px 0px -100px 0px",
+    }
+
+    const heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsHeroVisible(true)
+        }
+      })
+    }, observerOptions)
+
+    const storiesObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsStoriesVisible(true)
+        }
+      })
+    }, observerOptions)
+
+    if (heroRef.current) heroObserver.observe(heroRef.current)
+    if (storiesRef.current) storiesObserver.observe(storiesRef.current)
+
+    return () => {
+      heroObserver.disconnect()
+      storiesObserver.disconnect()
+    }
+  }, [])
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     setIsLoading(true)
 
     setTimeout(() => {
-      if (!query) {
-        setFilteredStories(corpsStories)
-        setIsLoading(false)
-        return
+      let filtered = corpsStories
+
+      if (query) {
+        filtered = filtered.filter(
+          (story) =>
+            story.title.toLowerCase().includes(query.toLowerCase()) ||
+            story.content.toLowerCase().includes(query.toLowerCase()) ||
+            story.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())) ||
+            story.location.toLowerCase().includes(query.toLowerCase()),
+        )
       }
 
-      const filtered = corpsStories.filter(
-        (story) =>
-          story.title.toLowerCase().includes(query.toLowerCase()) ||
-          story.content.toLowerCase().includes(query.toLowerCase()) ||
-          story.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())) ||
-          story.location.toLowerCase().includes(query.toLowerCase()),
-      )
+      if (selectedTag) {
+        filtered = filtered.filter((story) => story.tags.includes(selectedTag))
+      }
+
       setFilteredStories(filtered)
       setIsLoading(false)
     }, 300)
+  }
+
+  const handleTagFilter = (tag: string) => {
+    if (selectedTag === tag) {
+      setSelectedTag(null)
+      setFilteredStories(corpsStories)
+    } else {
+      setSelectedTag(tag)
+      const filtered = corpsStories.filter((story) => story.tags.includes(tag))
+      setFilteredStories(filtered)
+    }
   }
 
   const handleSort = (option: string) => {
@@ -159,77 +223,209 @@ export default function StoriesPage() {
     setFilteredStories(sorted)
   }
 
+  const totalLikes = corpsStories.reduce((sum, story) => sum + story.likes, 0)
+  const totalComments = corpsStories.reduce((sum, story) => sum + story.comments, 0)
+  const featuredStory = corpsStories[0]
+
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-20 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <BreadcrumbNav className="mb-6" />
+      <div
+        ref={heroRef}
+        className="relative pt-20 pb-16 bg-gradient-to-br from-[#1A7B7B] via-[#0F766E] to-[#1A7B7B] overflow-hidden"
+      >
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+        </div>
 
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            className={`text-center mb-12 transition-all duration-1000 ${
+              isHeroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            <Badge className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              <Sparkles className="w-3 h-3 mr-1" />
               Corps Stories
             </Badge>
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
-              Cultural Experiences & Stories
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 text-balance">
+              Share Your Cultural Journey
             </h1>
-            <p className="text-xl text-muted-foreground text-pretty max-w-3xl mx-auto">
-              Read and share authentic experiences from corps members exploring Jos's cultural heritage. Upload your own
-              stories, photos, and adventures.
+            <p className="text-xl text-white/90 text-pretty max-w-3xl mx-auto mb-8">
+              Discover authentic experiences from corps members exploring Jos's rich cultural heritage
             </p>
+
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-8 mb-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{corpsStories.length}</div>
+                <div className="text-sm text-white/80">Stories</div>
+              </div>
+              <div className="w-px h-12 bg-white/30" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{totalLikes}</div>
+                <div className="text-sm text-white/80">Likes</div>
+              </div>
+              <div className="w-px h-12 bg-white/30" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{totalComments}</div>
+                <div className="text-sm text-white/80">Comments</div>
+              </div>
+            </div>
+
+            <Button size="lg" className="bg-white text-[#1A7B7B] hover:bg-white/90 gap-2">
+              <Plus className="w-5 h-5" />
+              Share Your Story
+            </Button>
           </div>
 
-          <div className="space-y-6 mb-8">
-            <div className="flex flex-col sm:flex-row gap-4">
+          {/* Featured Story Preview */}
+          {featuredStory && (
+            <div
+              className={`max-w-4xl mx-auto transition-all duration-1000 delay-300 ${
+                isHeroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div className="grid md:grid-cols-2 gap-0">
+                  <div className="relative h-64 md:h-auto">
+                    <img
+                      src={featuredStory.images[0] || "/placeholder.svg"}
+                      alt={featuredStory.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-[#1A7B7B] text-white">Featured Story</Badge>
+                    </div>
+                  </div>
+                  <div className="p-8 flex flex-col justify-center">
+                    <h3 className="text-2xl font-bold text-foreground mb-3">{featuredStory.title}</h3>
+                    <p className="text-muted-foreground mb-4 line-clamp-3">{featuredStory.content}</p>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Heart className="w-4 h-4" />
+                        <span>{featuredStory.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Eye className="w-4 h-4" />
+                        <span>{featuredStory.comments} comments</span>
+                      </div>
+                    </div>
+                    <Button className="w-fit bg-[#1A7B7B] hover:bg-[#0F766E]">Read Full Story</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <BreadcrumbNav className="mb-8" />
+
+          <div className="mb-12">
+            <div className="flex flex-col lg:flex-row gap-6 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   placeholder="Search stories, experiences, locations..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-12 h-14 text-base border-2 focus:border-[#1A7B7B]"
                 />
               </div>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                <span>Share Your Story</span>
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Sort by:</span>
+              <div className="flex gap-3">
                 {sortOptions.map((option) => (
                   <Button
                     key={option.value}
                     variant={sortBy === option.value ? "default" : "outline"}
-                    size="sm"
+                    size="lg"
                     onClick={() => handleSort(option.value)}
-                    className="gap-2"
+                    className={`gap-2 ${sortBy === option.value ? "bg-[#1A7B7B] hover:bg-[#0F766E]" : ""}`}
                   >
                     <option.icon className="w-4 h-4" />
-                    <span>{option.label}</span>
+                    <span className="hidden sm:inline">{option.label}</span>
                   </Button>
                 ))}
               </div>
-              <div className="text-sm text-muted-foreground">
-                {isLoading ? "Loading..." : `${filteredStories.length} stories`}
-              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-muted-foreground flex items-center">Filter by tag:</span>
+              {allTags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant={selectedTag === tag ? "default" : "outline"}
+                  className={`cursor-pointer transition-all hover:scale-105 ${
+                    selectedTag === tag ? "bg-[#1A7B7B] hover:bg-[#0F766E] text-white" : "hover:border-[#1A7B7B]"
+                  }`}
+                  onClick={() => handleTagFilter(tag)}
+                >
+                  #{tag}
+                </Badge>
+              ))}
+              {selectedTag && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedTag(null)
+                    setFilteredStories(corpsStories)
+                  }}
+                  className="h-6 text-xs"
+                >
+                  Clear filter
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-foreground">
+              {selectedTag ? `Stories tagged with #${selectedTag}` : "All Stories"}
+            </h2>
+            <div className="text-sm text-muted-foreground bg-muted px-4 py-2 rounded-full">
+              {isLoading
+                ? "Loading..."
+                : `${filteredStories.length} ${filteredStories.length === 1 ? "story" : "stories"}`}
             </div>
           </div>
 
           {isLoading ? (
-            <div className="space-y-8 mb-12">
-              {Array.from({ length: 3 }).map((_, i) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              {Array.from({ length: 4 }).map((_, i) => (
                 <StoryCardSkeleton key={i} />
               ))}
             </div>
           ) : (
             <>
-              <div className="space-y-8 mb-12">
-                {filteredStories.map((story) => (
-                  <StoryCard key={story.id} story={story} />
+              <div
+                ref={storiesRef}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 transition-all duration-1000 ${
+                  isStoriesVisible ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {filteredStories.map((story, index) => (
+                  <div
+                    key={story.id}
+                    className="transition-all duration-700"
+                    style={{
+                      transitionDelay: isStoriesVisible ? `${index * 100}ms` : "0ms",
+                      opacity: isStoriesVisible ? 1 : 0,
+                      transform: isStoriesVisible ? "translateY(0)" : "translateY(30px)",
+                    }}
+                  >
+                    <StoryCard story={story} />
+                  </div>
                 ))}
               </div>
 
@@ -239,7 +435,11 @@ export default function StoriesPage() {
 
           {filteredStories.length > 0 && !isLoading && (
             <div className="text-center">
-              <Button variant="outline" size="lg">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-[#1A7B7B] text-[#1A7B7B] hover:bg-[#1A7B7B] hover:text-white transition-all bg-transparent"
+              >
                 Load More Stories
               </Button>
             </div>

@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createBrowserClient } from "@supabase/ssr"
 import { Loader2 } from "lucide-react"
 
 interface ProtectedRouteProps {
@@ -19,25 +18,27 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      )
+      const adminSession = localStorage.getItem("admin_session")
+      const adminUsername = localStorage.getItem("admin_username")
+      const loginTime = localStorage.getItem("admin_login_time")
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push("/auth/login")
+      if (!adminSession || adminSession !== "true" || !adminUsername) {
+        router.push("/admin/login")
         return
       }
 
-      if (requireAdmin) {
-        const { data: profile } = await supabase.from("user_profiles").select("role").eq("user_id", user.id).single()
+      // Optional: Check if session is expired (24 hours)
+      if (loginTime) {
+        const loginDate = new Date(loginTime)
+        const now = new Date()
+        const hoursSinceLogin = (now.getTime() - loginDate.getTime()) / (1000 * 60 * 60)
 
-        if (!profile || profile.role !== "admin") {
-          router.push("/unauthorized")
+        if (hoursSinceLogin > 24) {
+          // Session expired
+          localStorage.removeItem("admin_session")
+          localStorage.removeItem("admin_username")
+          localStorage.removeItem("admin_login_time")
+          router.push("/admin/login")
           return
         }
       }
@@ -51,10 +52,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-2">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex items-center gap-2 text-[#1A7B7B]">
           <Loader2 className="w-6 h-6 animate-spin" />
-          <span>Verifying access...</span>
+          <span>Verifying admin access...</span>
         </div>
       </div>
     )
