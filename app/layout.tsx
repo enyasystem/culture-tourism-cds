@@ -22,18 +22,20 @@ export const metadata: Metadata = {
   generator: "v0.app",
   keywords: ["Culture", "Tourism", "CDS", "Jos", "Plateau State", "NYSC", "Cultural Heritage", "Nigeria"],
   authors: [{ name: "Enya Elvis", url: "https://github.com/enyasystem" }],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://culture-tourism-cds.vercel.app"),
   openGraph: {
     title: "Culture & Tourism CDS | Jos, Plateau State",
     description:
       "Empowering NYSC corps members to explore, document, and promote Jos's rich cultural heritage and sustainable tourism",
-    url: "https://josculture.ng",
-    siteName: "Culture & Tourism CDS Platform",
+    url: "/",
+    siteName: "Jos North Culture & Tourism CDS",
     images: [
       {
-        url: "/logo-social.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Jos North Culture & Tourism CDS Platform",
+        type: "image/png",
       },
     ],
     locale: "en_NG",
@@ -43,13 +45,18 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Culture & Tourism CDS | Jos, Plateau State",
     description: "Empowering NYSC corps members to explore Jos's rich cultural heritage",
-    images: ["/logo-social.png"],
+    images: ["/og-image.png"],
+    creator: "@enyasystem",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
+  manifest: "/site.webmanifest",
 }
 
 export default function RootLayout({

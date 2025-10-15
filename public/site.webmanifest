@@ -1,0 +1,21 @@
+{
+  "name": "Jos North Culture & Tourism CDS",
+  "short_name": "Culture & Tourism",
+  "description": "Empowering NYSC corps members to explore Jos's rich cultural heritage",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1A7B7B",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
