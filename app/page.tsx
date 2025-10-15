@@ -10,6 +10,7 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
 
   const aboutRef = useRef<HTMLElement>(null)
   const howItWorksRef = useRef<HTMLElement>(null)
@@ -22,15 +23,24 @@ export default function HomePage() {
   const [eventsVisible, setEventsVisible] = useState(false)
 
   useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding")
     if (!hasSeenOnboarding) {
       setShowOnboarding(true)
     }
-    setIsVisible(true)
+
+    setTimeout(() => setIsVisible(true), 100)
 
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "0px 0px -100px 0px",
+      threshold: 0.15,
+      rootMargin: "0px 0px -50px 0px",
     }
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -112,19 +122,21 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background overflow-x-hidden">
       <Navigation />
 
       <UserOnboarding isOpen={showOnboarding} onClose={handleOnboardingClose} onComplete={handleOnboardingComplete} />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen pt-16">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
+      <section className="relative min-h-screen pt-16 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 will-change-transform"
+          style={{ transform: `translateY(${scrollY * 0.5}px)` }}
+        >
           <img
             src="/abstract-cultural-pattern-jos-plateau.jpg"
             alt="Jos Plateau Background"
-            className="w-full h-full object-cover"
+            className="w-full h-[120vh] object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1A7B7B]/90 via-[#1A7B7B]/70 to-transparent"></div>
         </div>
@@ -134,18 +146,37 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-8rem)]">
             {/* Left Side - Text Content */}
             <div
-              className={`text-white space-y-6 lg:space-y-8 transition-all duration-1000 ${
-                isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+              className={`text-white space-y-6 lg:space-y-8 transition-all duration-1200 ease-out ${
+                isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-20"
               }`}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight uppercase">
-                DISCOVER JOS
+                <span
+                  className="inline-block transition-all duration-700 delay-100"
+                  style={{ transitionDelay: isVisible ? "100ms" : "0ms" }}
+                >
+                  DISCOVER JOS
+                </span>
                 <br />
-                CULTURAL
+                <span
+                  className="inline-block transition-all duration-700 delay-200"
+                  style={{ transitionDelay: isVisible ? "300ms" : "0ms" }}
+                >
+                  CULTURAL
+                </span>
                 <br />
-                HERITAGE
+                <span
+                  className="inline-block transition-all duration-700 delay-300"
+                  style={{ transitionDelay: isVisible ? "500ms" : "0ms" }}
+                >
+                  HERITAGE
+                </span>
               </h1>
-              <p className="text-lg sm:text-xl lg:text-2xl text-white/90 leading-relaxed max-w-xl italic">
+              <p
+                className={`text-lg sm:text-xl lg:text-2xl text-white/90 leading-relaxed max-w-xl italic transition-all duration-1000 delay-700 ${
+                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 Join Culture & Tourism CDS in exploring Jos's rich cultural heritage, promoting peace through tourism,
                 and documenting the treasures of Plateau State for future generations.
               </p>
@@ -153,18 +184,22 @@ export default function HomePage() {
 
             {/* Right Side - Search and Featured Cards */}
             <div
-              className={`space-y-6 transition-all duration-1000 delay-300 ${
-                isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+              className={`space-y-6 transition-all duration-1200 delay-400 ease-out ${
+                isVisible ? "opacity-100 translate-x-0 scale-100" : "opacity-0 translate-x-20 scale-95"
               }`}
             >
               {/* Search Bar */}
-              <div className="relative animate-in fade-in slide-in-from-top duration-700 delay-500">
+              <div
+                className={`relative transition-all duration-800 delay-600 ${
+                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+              >
                 <input
                   type="text"
                   placeholder="Explore Here..."
-                  className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl transition-all hover:shadow-2xl"
+                  className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 hover:scale-110">
                   <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -177,15 +212,19 @@ export default function HomePage() {
               </div>
 
               {/* Main Featured Image */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl group animate-in fade-in zoom-in-95 duration-700 delay-700">
+              <div
+                className={`relative rounded-3xl overflow-hidden shadow-2xl group transition-all duration-800 delay-700 ${
+                  isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+                }`}
+              >
                 <img
                   src={slides[currentSlide].mainImage || "/placeholder.svg"}
                   alt="Featured Destination"
-                  className="w-full h-[300px] sm:h-[400px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-[300px] sm:h-[400px] object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all hover:scale-110"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:-translate-x-1"
                 >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -193,7 +232,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all hover:scale-110"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:translate-x-1"
                 >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -206,8 +245,10 @@ export default function HomePage() {
                 {slides[currentSlide].destinations.map((destination, index) => (
                   <div
                     key={destination.id}
-                    className={`group perspective-1000 animate-in fade-in slide-in-from-bottom duration-700`}
-                    style={{ animationDelay: `${900 + index * 100}ms` }}
+                    className={`group perspective-1000 transition-all duration-800 ${
+                      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+                    }`}
+                    style={{ transitionDelay: `${900 + index * 150}ms` }}
                   >
                     <div className="relative w-full h-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                       {/* Front Face */}
@@ -216,7 +257,7 @@ export default function HomePage() {
                           <img
                             src={destination.image || "/placeholder.svg"}
                             alt={destination.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                         </div>
                         <div className="p-4 flex flex-col flex-1">
@@ -225,9 +266,14 @@ export default function HomePage() {
                             <p className="text-sm text-gray-600">{destination.location}</p>
                           </div>
                           <div className="flex justify-end mt-3">
-                            <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all">
+                            <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105 hover:shadow-lg">
                               Read More
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                             </button>
@@ -259,7 +305,7 @@ export default function HomePage() {
                           </div>
                         </div>
                         <Link href={`/sites/${destination.id}`} className="w-full">
-                          <button className="w-full bg-white text-[#1A7B7B] py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-all">
+                          <button className="w-full bg-white text-[#1A7B7B] py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-all duration-300 hover:scale-105">
                             Explore Now
                           </button>
                         </Link>
@@ -270,13 +316,17 @@ export default function HomePage() {
               </div>
 
               {/* Carousel Indicators */}
-              <div className="flex justify-center gap-2 pt-4 animate-in fade-in duration-700 delay-1000">
+              <div
+                className={`flex justify-center gap-2 pt-4 transition-all duration-800 delay-1200 ${
+                  isVisible ? "opacity-100" : "opacity-0"
+                }`}
+              >
                 {slides.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-3 rounded-full transition-all duration-300 ${
-                      currentSlide === index ? "bg-white w-8" : "bg-white/50 w-3"
+                    className={`h-3 rounded-full transition-all duration-500 hover:scale-110 ${
+                      currentSlide === index ? "bg-white w-8" : "bg-white/50 w-3 hover:bg-white/70"
                     }`}
                   />
                 ))}
@@ -289,15 +339,22 @@ export default function HomePage() {
       {/* About Culture & Tourism CDS Section */}
       <section
         ref={aboutRef}
-        className={`py-20 bg-white transition-all duration-1000 ${
-          aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        className={`py-20 bg-white transition-all duration-1200 ease-out ${
+          aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">About Culture & Tourism CDS</h2>
-              <div className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6"></div>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: aboutVisible ? "96px" : "0px" }}
+              ></div>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Empowering NYSC corps members to promote cultural heritage and sustainable tourism in Jos, Plateau State
               </p>
@@ -305,11 +362,11 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div
-                className={`space-y-6 transition-all duration-1000 delay-200 ${
-                  aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                className={`space-y-6 transition-all duration-1000 delay-300 ease-out ${
+                  aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-20"
                 }`}
               >
-                <div className="bg-gradient-to-br from-[#1A7B7B]/10 to-[#0F766E]/5 p-8 rounded-3xl">
+                <div className="bg-gradient-to-br from-[#1A7B7B]/10 to-[#0F766E]/5 p-8 rounded-3xl transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
                   <p className="text-gray-700 leading-relaxed">
                     The Culture & Tourism CDS group is dedicated to preserving and promoting the rich cultural heritage
@@ -318,42 +375,47 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="bg-gradient-to-br from-[#1A7B7B]/10 to-[#0F766E]/5 p-8 rounded-3xl">
+                <div className="bg-gradient-to-br from-[#1A7B7B]/10 to-[#0F766E]/5 p-8 rounded-3xl transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">What We Do</h3>
                   <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start gap-3">
-                      <span className="text-[#1A7B7B] text-xl">✓</span>
-                      <span>Document and preserve cultural sites and heritage locations</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-[#1A7B7B] text-xl">✓</span>
-                      <span>Organize cultural events and tourism awareness programs</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-[#1A7B7B] text-xl">✓</span>
-                      <span>Connect corps members with local communities and tourism initiatives</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-[#1A7B7B] text-xl">✓</span>
-                      <span>Share experiences and promote Jos as a cultural tourism destination</span>
-                    </li>
+                    {[
+                      "Document and preserve cultural sites and heritage locations",
+                      "Organize cultural events and tourism awareness programs",
+                      "Connect corps members with local communities and tourism initiatives",
+                      "Share experiences and promote Jos as a cultural tourism destination",
+                    ].map((item, index) => (
+                      <li
+                        key={index}
+                        className={`flex items-start gap-3 transition-all duration-500 ${
+                          aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                        }`}
+                        style={{ transitionDelay: `${500 + index * 100}ms` }}
+                      >
+                        <span className="text-[#1A7B7B] text-xl">✓</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
 
               <div
-                className={`relative transition-all duration-1000 delay-400 ${
-                  aboutVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+                className={`relative transition-all duration-1000 delay-500 ease-out ${
+                  aboutVisible ? "opacity-100 translate-x-0 scale-100" : "opacity-0 translate-x-20 scale-95"
                 }`}
               >
-                <div className="rounded-3xl overflow-hidden shadow-2xl">
+                <div className="rounded-3xl overflow-hidden shadow-2xl group">
                   <img
                     src="/national-museum-jos-cultural-artifacts.jpg"
                     alt="Culture & Tourism CDS"
-                    className="w-full h-[500px] object-cover"
+                    className="w-full h-[500px] object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
-                <div className="absolute -bottom-6 -left-6 bg-[#1A7B7B] text-white p-8 rounded-2xl shadow-xl max-w-xs">
+                <div
+                  className={`absolute -bottom-6 -left-6 bg-[#1A7B7B] text-white p-8 rounded-2xl shadow-xl max-w-xs transition-all duration-700 delay-700 hover:scale-105 ${
+                    aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                  }`}
+                >
                   <p className="text-4xl font-bold mb-2">500+</p>
                   <p className="text-lg">Active Corps Members</p>
                 </div>
@@ -366,130 +428,81 @@ export default function HomePage() {
       {/* How It Works Section */}
       <section
         ref={howItWorksRef}
-        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1000 ${
-          howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
+          howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
-              <div className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6"></div>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: howItWorksVisible ? "96px" : "0px" }}
+              ></div>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Get started with Culture & Tourism CDS in four simple steps
               </p>
             </div>
 
             <div className="grid md:grid-cols-4 gap-8">
-              {/* Step 1 */}
-              <div
-                className={`relative transition-all duration-700 delay-200 ${
-                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-              >
-                <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
+              {[
+                {
+                  icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
+                  title: "Sign Up",
+                  desc: "Create your account and join the Culture & Tourism CDS community",
+                },
+                {
+                  icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
+                  title: "Explore Sites",
+                  desc: "Discover cultural sites, museums, and heritage locations across Jos",
+                },
+                {
+                  icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+                  title: "Attend Events",
+                  desc: "Participate in cultural events, workshops, and CDS activities",
+                },
+                {
+                  icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+                  title: "Share Stories",
+                  desc: "Document your experiences and inspire other corps members",
+                },
+              ].map((step, index) => (
+                <div
+                  key={index}
+                  className={`relative transition-all duration-800 ease-out ${
+                    howItWorksVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-20 scale-90"
+                  }`}
+                  style={{ transitionDelay: `${300 + index * 150}ms` }}
+                >
+                  <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 text-center group hover:-translate-y-2">
+                    <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
+                      <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
+                      </svg>
+                    </div>
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-all duration-500 group-hover:scale-110">
+                      {index + 1}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                    <p className="text-gray-600">{step.desc}</p>
                   </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                    1
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Sign Up</h3>
-                  <p className="text-gray-600">Create your account and join the Culture & Tourism CDS community</p>
                 </div>
-              </div>
-
-              {/* Step 2 */}
-              <div
-                className={`relative transition-all duration-700 delay-300 ${
-                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-              >
-                <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                    2
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Explore Sites</h3>
-                  <p className="text-gray-600">Discover cultural sites, museums, and heritage locations across Jos</p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div
-                className={`relative transition-all duration-700 delay-400 ${
-                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-              >
-                <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                    3
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Attend Events</h3>
-                  <p className="text-gray-600">Participate in cultural events, workshops, and CDS activities</p>
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div
-                className={`relative transition-all duration-700 delay-500 ${
-                  howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-              >
-                <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                    4
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Share Stories</h3>
-                  <p className="text-gray-600">Document your experiences and inspire other corps members</p>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* CTA Button */}
             <div
-              className={`text-center mt-12 transition-all duration-700 delay-600 ${
-                howItWorksVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              className={`text-center mt-12 transition-all duration-800 delay-900 ${
+                howItWorksVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
               }`}
             >
               <Link href="/auth/signup">
-                <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105">
                   Get Started Today
                 </button>
               </Link>
@@ -501,15 +514,22 @@ export default function HomePage() {
       {/* Explore by Category Section */}
       <section
         ref={categoriesRef}
-        className={`py-20 bg-white transition-all duration-1000 ${
-          categoriesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        className={`py-20 bg-white transition-all duration-1200 ease-out ${
+          categoriesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                categoriesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Explore by Category</h2>
-              <div className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6"></div>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: categoriesVisible ? "96px" : "0px" }}
+              ></div>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Discover Jos's cultural treasures organized by your interests
               </p>
@@ -518,16 +538,16 @@ export default function HomePage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Museums & Heritage */}
               <div
-                className={`group perspective-1000 transition-all duration-700 ${
-                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                className={`group perspective-1000 transition-all duration-800 ${
+                  categoriesVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-20"
                 }`}
                 style={{ transitionDelay: categoriesVisible ? "200ms" : "0ms" }}
               >
                 <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                   {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div>
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -542,7 +562,12 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center text-sm font-semibold">
                       <span>Discover More</span>
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -586,7 +611,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <Link href="/sites?category=museums" className="w-full">
-                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all">
+                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105">
                         Explore Now
                       </button>
                     </Link>
@@ -596,16 +621,16 @@ export default function HomePage() {
 
               {/* Natural Attractions */}
               <div
-                className={`group perspective-1000 transition-all duration-700 ${
-                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                className={`group perspective-1000 transition-all duration-800 ${
+                  categoriesVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-20"
                 }`}
                 style={{ transitionDelay: categoriesVisible ? "300ms" : "0ms" }}
               >
                 <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                   {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div>
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -620,7 +645,12 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center text-sm font-semibold">
                       <span>Discover More</span>
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -664,7 +694,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <Link href="/sites?category=nature" className="w-full">
-                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all">
+                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all duration-300 hover:scale-105">
                         Explore Now
                       </button>
                     </Link>
@@ -674,16 +704,16 @@ export default function HomePage() {
 
               {/* Festivals & Events */}
               <div
-                className={`group perspective-1000 transition-all duration-700 ${
-                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                className={`group perspective-1000 transition-all duration-800 ${
+                  categoriesVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-20"
                 }`}
                 style={{ transitionDelay: categoriesVisible ? "400ms" : "0ms" }}
               >
                 <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                   {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div>
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -698,7 +728,12 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center text-sm font-semibold">
                       <span>Discover More</span>
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -742,7 +777,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <Link href="/events" className="w-full">
-                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all">
+                      <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105">
                         View Events
                       </button>
                     </Link>
@@ -752,16 +787,16 @@ export default function HomePage() {
 
               {/* Historical Sites */}
               <div
-                className={`group perspective-1000 transition-all duration-700 ${
-                  categoriesVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                className={`group perspective-1000 transition-all duration-800 ${
+                  categoriesVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-20"
                 }`}
                 style={{ transitionDelay: categoriesVisible ? "500ms" : "0ms" }}
               >
                 <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                   {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer">
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#0F766E] to-[#0D5F5F] rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div>
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -776,7 +811,12 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center text-sm font-semibold">
                       <span>Discover More</span>
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -820,7 +860,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <Link href="/sites?category=historical" className="w-full">
-                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all">
+                      <button className="w-full bg-[#0F766E] text-white py-3 rounded-full font-semibold hover:bg-[#0D5F5F] transition-all duration-300 hover:scale-105">
                         Explore Now
                       </button>
                     </Link>
@@ -835,15 +875,22 @@ export default function HomePage() {
       {/* Featured Upcoming Events Section */}
       <section
         ref={eventsRef}
-        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1000 ${
-          eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
+          eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Featured Upcoming Events</h2>
-              <div className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6"></div>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: eventsVisible ? "96px" : "0px" }}
+              ></div>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Join us for exciting cultural events and CDS activities
               </p>
@@ -899,7 +946,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <Link href="/events/1">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors">
+                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
                       Register Now
                     </button>
                   </Link>
@@ -955,7 +1002,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <Link href="/events/2">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors">
+                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
                       Register Now
                     </button>
                   </Link>
@@ -1011,7 +1058,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <Link href="/events/3">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors">
+                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
                       Register Now
                     </button>
                   </Link>
@@ -1067,7 +1114,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <Link href="/events/4">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors">
+                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
                       Register Now
                     </button>
                   </Link>
@@ -1077,12 +1124,12 @@ export default function HomePage() {
 
             {/* View All Events Button */}
             <div
-              className={`text-center mt-12 transition-all duration-700 delay-600 ${
-                eventsVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              className={`text-center mt-12 transition-all duration-800 delay-600 ${
+                eventsVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
               }`}
             >
               <Link href="/events">
-                <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300">
+                <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-2 duration-300">
                   View All Events
                 </button>
               </Link>

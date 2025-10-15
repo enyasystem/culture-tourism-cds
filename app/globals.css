@@ -145,13 +145,29 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Added smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
-/* Enhanced animations and visual effects */
+/* Enhanced Fruitful-style animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
   }
   to {
     opacity: 1;
@@ -162,11 +178,33 @@
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(40px);
   }
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -176,7 +214,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-15px);
   }
 }
 
@@ -189,12 +227,52 @@
   }
 }
 
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(26, 123, 123, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(26, 123, 123, 0.6);
+  }
+}
+
+/* Smooth transition utilities */
+.smooth-transition {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-transform {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Will-change for performance */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out;
 }
 
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease-out;
+}
+
 .animate-slide-in-right {
   animation: slideInRight 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s ease-out;
 }
 
 .animate-float {
