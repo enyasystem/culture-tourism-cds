@@ -32,7 +32,7 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-green-800 mb-2">Welcome back, {profile?.full_name || user.email}!</h1>
-          <p className="text-gray-600">Manage your contributions to the Peace & Tourism CDS platform</p>
+          <p className="text-gray-600">Manage your contributions to the Culture & Tourism CDS platform</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
                 <Button className="w-full justify-start bg-green-600 hover:bg-green-700">Add Cultural Site</Button>
               </Link>
               <Link href="/events/new">
-                <Button className="w-full justify-start bg-blue-600 hover:bg-blue-700">Create Peace Event</Button>
+                <Button className="w-full justify-start bg-blue-600 hover:bg-blue-700">Create Cultural Event</Button>
               </Link>
               <Link href="/stories/new">
                 <Button className="w-full justify-start bg-purple-600 hover:bg-purple-700">Share Your Story</Button>

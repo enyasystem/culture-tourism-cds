@@ -13,7 +13,7 @@ export default function SignupSuccessPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <CardTitle className="text-2xl font-bold text-green-800">Welcome to Peace & Tourism CDS!</CardTitle>
+            <CardTitle className="text-2xl font-bold text-green-800">Welcome to Culture & Tourism CDS!</CardTitle>
             <CardDescription>Please check your email to verify your account</CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">

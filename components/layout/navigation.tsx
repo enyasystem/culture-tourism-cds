@@ -62,7 +62,7 @@ export function Navigation() {
                         <Calendar className="w-5 h-5 text-[#1A7B7B]" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">Peace Events</div>
+                        <div className="font-medium text-gray-900 mb-1">Cultural Events</div>
                         <div className="text-sm text-gray-600">Join exciting cultural events and CDS activities</div>
                       </div>
                     </Link>
@@ -130,7 +130,7 @@ export function Navigation() {
                 className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Peace Events
+                Cultural Events
               </Link>
               <Link
                 href="/stories"
