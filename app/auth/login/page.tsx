@@ -27,11 +27,35 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
+
       if (error) throw error
+
+      // After sign-in, fetch the authenticated user and their profile role.
+      const { data: userData, error: getUserError } = await supabase.auth.getUser()
+      if (!getUserError && userData?.user?.id) {
+        const userId = userData.user.id
+        try {
+          const { data: profile, error: profileErr } = await supabase
+            .from("user_profiles")
+            .select("role")
+            .eq("user_id", userId)
+            .single()
+
+          if (!profileErr && profile?.role === "admin") {
+            router.push("/admin")
+            router.refresh()
+            return
+          }
+        } catch {
+          // ignore and fall back to home
+        }
+      }
+
+      // default redirect
       router.push("/")
       router.refresh()
     } catch (error: unknown) {
