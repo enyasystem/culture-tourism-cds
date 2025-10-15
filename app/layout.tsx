@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "Jos North Culture & Tourism CDS",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Jos North Culture & Tourism CDS Platform",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Culture & Tourism CDS | Jos, Plateau State",
     description: "Empowering NYSC corps members to explore Jos's rich cultural heritage",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
     creator: "@enyasystem",
   },
   icons: {
@@ -57,6 +57,12 @@ export const metadata: Metadata = {
     apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
   manifest: "/site.webmanifest",
+  other: {
+    "og:image:secure_url": "/og-image.jpg",
+    "og:image:type": "image/png",
+    "og:image:width": "1200",
+    "og:image:height": "630",
+  },
 }
 
 export default function RootLayout({
