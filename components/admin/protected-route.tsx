@@ -18,11 +18,18 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("[v0] ==================== PROTECTED ROUTE CHECK ====================")
+
       const adminSession = localStorage.getItem("admin_session")
       const adminUsername = localStorage.getItem("admin_username")
       const loginTime = localStorage.getItem("admin_login_time")
 
+      console.log("[v0] Admin session:", adminSession)
+      console.log("[v0] Admin username:", adminUsername)
+      console.log("[v0] Login time:", loginTime)
+
       if (!adminSession || adminSession !== "true" || !adminUsername) {
+        console.log("[v0] ✗ No valid admin session found, redirecting to login")
         router.push("/admin/login")
         return
       }
@@ -33,7 +40,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         const now = new Date()
         const hoursSinceLogin = (now.getTime() - loginDate.getTime()) / (1000 * 60 * 60)
 
+        console.log("[v0] Hours since login:", hoursSinceLogin)
+
         if (hoursSinceLogin > 24) {
+          console.log("[v0] ✗ Session expired (>24 hours), redirecting to login")
           // Session expired
           localStorage.removeItem("admin_session")
           localStorage.removeItem("admin_username")
@@ -43,8 +53,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         }
       }
 
+      console.log("[v0] ✓ Admin session valid, granting access")
       setIsAuthorized(true)
       setIsLoading(false)
+      console.log("[v0] ================================================================")
     }
 
     checkAuth()

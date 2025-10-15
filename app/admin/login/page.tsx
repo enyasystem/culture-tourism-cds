@@ -24,19 +24,41 @@ export default function AdminLoginPage() {
     setError("")
     setIsLoading(true)
 
-    // Simple hardcoded authentication
-    if (username === "admin" && password === "password") {
+    const trimmedUsername = username.trim()
+    const trimmedPassword = password.trim()
+
+    console.log("[v0] ==================== LOGIN ATTEMPT ====================")
+    console.log("[v0] Raw username:", JSON.stringify(username))
+    console.log("[v0] Raw password:", JSON.stringify(password))
+    console.log("[v0] Trimmed username:", JSON.stringify(trimmedUsername))
+    console.log("[v0] Trimmed password:", JSON.stringify(trimmedPassword))
+    console.log("[v0] Username length:", trimmedUsername.length)
+    console.log("[v0] Password length:", trimmedPassword.length)
+    console.log("[v0] Expected username:", JSON.stringify("admin@example.com"))
+    console.log("[v0] Expected password:", JSON.stringify("password"))
+    console.log("[v0] Username match:", trimmedUsername === "admin@example.com")
+    console.log("[v0] Password match:", trimmedPassword === "password")
+    console.log("[v0] Both match:", trimmedUsername === "admin@example.com" && trimmedPassword === "password")
+
+    if (trimmedUsername === "admin@example.com" && trimmedPassword === "password") {
+      console.log("[v0] ✓ Credentials match! Setting session...")
+
       // Store admin session
       localStorage.setItem("admin_session", "true")
-      localStorage.setItem("admin_username", username)
+      localStorage.setItem("admin_username", trimmedUsername)
       localStorage.setItem("admin_login_time", new Date().toISOString())
+
+      console.log("[v0] ✓ Session stored successfully")
+      console.log("[v0] ✓ Redirecting to /admin")
 
       // Redirect to admin dashboard
       router.push("/admin")
     } else {
+      console.log("[v0] ✗ Login failed - Credentials don't match")
       setError("Invalid username or password. Please try again.")
       setIsLoading(false)
     }
+    console.log("[v0] ========================================================")
   }
 
   return (
@@ -131,8 +153,8 @@ export default function AdminLoginPage() {
 
             <div className="mt-6 pt-6 border-t text-center">
               <p className="text-xs text-muted-foreground">
-                Default credentials: username: <span className="font-mono font-semibold">admin@example.com</span> | password:{" "}
-                <span className="font-mono font-semibold">password</span>
+                Default credentials: username: <span className="font-mono font-semibold">admin@example.com</span> |
+                password: <span className="font-mono font-semibold">password</span>
               </p>
             </div>
           </CardContent>

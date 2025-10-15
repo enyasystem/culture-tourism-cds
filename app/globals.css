@@ -147,7 +147,7 @@
   }
 }
 
-/* Enhanced animations and visual effects for premium feel */
+/* Enhanced animations and visual effects */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -207,25 +207,7 @@
   animation: shimmer 2s infinite;
 }
 
-/* Added sophisticated background patterns */
-.hero-pattern {
-  background-image: radial-gradient(circle at 25% 25%, rgba(143, 152, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(184, 193, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(107, 118, 232, 0.05) 0%, transparent 50%);
-}
-
-.card-glow {
-  box-shadow: 0 0 0 1px rgba(143, 152, 255, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-}
-
-.card-glow:hover {
-  box-shadow: 0 0 0 1px rgba(143, 152, 255, 0.2), 0 20px 25px -5px rgba(143, 152, 255, 0.1), 0 10px 10px -5px
-    rgba(143, 152, 255, 0.04);
-  transform: translateY(-4px);
-}
-
-/* Added 3D flip animation utilities for card hover effects */
+/* 3D flip animation utilities */
 .perspective-1000 {
   perspective: 1000px;
 }
