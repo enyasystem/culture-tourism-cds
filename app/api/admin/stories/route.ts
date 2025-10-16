@@ -27,6 +27,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+    console.debug('[api/admin/stories] POST body:', body)
     const parsed = storyCreateSchema.parse(body)
     const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const restUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/stories`
@@ -42,7 +43,13 @@ export async function POST(req: Request) {
     })
     if (!resp.ok) {
       const text = await resp.text()
-      return NextResponse.json({ error: text }, { status: resp.status })
+      console.debug('[api/admin/stories] supabase response error:', resp.status, text)
+      try {
+        const parsedErr = JSON.parse(text)
+        return NextResponse.json({ error: parsedErr }, { status: resp.status })
+      } catch {
+        return NextResponse.json({ error: text }, { status: resp.status })
+      }
     }
     const created = await resp.json()
     return NextResponse.json({ data: created[0] }, { status: 201 })

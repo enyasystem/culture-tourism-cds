@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server"
 import { pageUpdateSchema, pageDbSelect } from "@/lib/schemas/pages"
 
+function isUuid(id: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+}
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { id } = params
+  if (!isUuid(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/pages?id=eq.${id}&select=${pageDbSelect}`
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const paramsObj = new URLSearchParams()
+    paramsObj.set('id', `eq.'${id}'`)
+    paramsObj.set('select', pageDbSelect)
+    const url = `${base}/rest/v1/pages?${paramsObj.toString()}`
     const resp = await fetch(url, {
       headers: {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
@@ -29,12 +38,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const { id } = params
+  if (!isUuid(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
   try {
     const body = await req.json()
     const parsed = pageUpdateSchema.parse(body)
 
     const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/pages?id=eq.${id}`
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const paramsObj = new URLSearchParams()
+    paramsObj.set('id', `eq.'${id}'`)
+    const url = `${base}/rest/v1/pages?${paramsObj.toString()}`
     const resp = await fetch(url, {
       method: "PATCH",
       headers: {
@@ -63,9 +76,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const { id } = params
+  if (!isUuid(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
   try {
     const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/pages?id=eq.${id}`
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const paramsObj = new URLSearchParams()
+    paramsObj.set('id', `eq.'${id}'`)
+    const url = `${base}/rest/v1/pages?${paramsObj.toString()}`
     const resp = await fetch(url, {
       method: "DELETE",
       headers: {
