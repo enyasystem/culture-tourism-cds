@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth/auth-provider"
+import ToastProvider from "@/components/ui/toast"
 import "./globals.css"
 
 const inter = Inter({
@@ -74,7 +75,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <AuthProvider>
-          <Suspense fallback={null}>{children}</Suspense>
+          <ToastProvider>
+            <Suspense fallback={null}>{children}</Suspense>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

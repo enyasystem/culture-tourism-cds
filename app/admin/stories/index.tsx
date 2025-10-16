@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
+import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -42,6 +43,7 @@ export default function StoriesPage() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchStories()
@@ -287,6 +289,7 @@ export default function StoriesPage() {
                               if (!ok) return
                               try {
                                 setDeletingId(story.id)
+                                toast({ title: "Deleting", description: "Deleting story...", variant: "info" })
                                 const resp = await fetch(`/api/admin/stories/${story.id}`, {
                                   method: "DELETE",
                                   credentials: 'same-origin',
@@ -295,6 +298,7 @@ export default function StoriesPage() {
                                 if (resp.status === 204) {
                                   // success
                                   setStories((s) => s.filter((x) => x.id !== story.id))
+                                  toast({ title: "Deleted", description: "Story deleted successfully", variant: "success" })
                                   return
                                 }
 
@@ -308,10 +312,10 @@ export default function StoriesPage() {
                                   // keep raw text
                                 }
                                 console.error(`Failed to delete story (status ${resp.status}):`, bodyText)
-                                alert(`Failed to delete story (status ${resp.status}):\n${bodyText}`)
+                                toast({ title: "Failed to delete", description: `Status ${resp.status}: ${bodyText}`, variant: "error" })
                               } catch (e: any) {
                                 console.error(e)
-                                alert("An error occurred while deleting the story: " + String(e))
+                                toast({ title: "Error", description: String(e), variant: "error" })
                               } finally {
                                 setDeletingId(null)
                               }
