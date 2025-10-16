@@ -13,14 +13,14 @@ const recentActivity = [
     id: 1,
     type: "user_joined",
     message: "New corps member joined the platform",
-    user: "Kemi Adebayo (PL/23B/4567)",
+    user: "Kemi Adebayo",
     timestamp: "5 minutes ago",
   },
   {
     id: 2,
     type: "story_posted",
     message: "New story posted about Jos Wildlife Park",
-    user: "Ibrahim Musa (PL/23B/5678)",
+  user: "Ibrahim Musa",
     timestamp: "12 minutes ago",
   },
   {

@@ -26,7 +26,6 @@ const corpsStories = [
     author: {
       name: "Adaora Okafor",
       avatar: "/placeholder.svg?key=avatar1",
-      corpsId: "PL/23B/1234",
     },
     location: "Jos Wildlife Park",
     date: "2025-01-15",
@@ -44,7 +43,6 @@ const corpsStories = [
     author: {
       name: "Ibrahim Musa",
       avatar: "/placeholder.svg?key=avatar2",
-      corpsId: "PL/23B/5678",
     },
     location: "National Museum Jos",
     date: "2025-01-12",
@@ -67,7 +65,6 @@ const corpsStories = [
     author: {
       name: "Fatima Abdullahi",
       avatar: "/placeholder.svg?key=avatar3",
-      corpsId: "PL/23B/9012",
     },
     location: "Shere Hills",
     date: "2025-01-10",
@@ -85,7 +82,6 @@ const corpsStories = [
     author: {
       name: "Chioma Eze",
       avatar: "/placeholder.svg?key=avatar4",
-      corpsId: "PL/23B/3456",
     },
     location: "Jos Main Market",
     date: "2025-01-08",
@@ -103,7 +99,6 @@ const corpsStories = [
     author: {
       name: "David Okonkwo",
       avatar: "/placeholder.svg?key=avatar5",
-      corpsId: "PL/23B/7890",
     },
     location: "Government Primary School, Jos",
     date: "2025-01-05",

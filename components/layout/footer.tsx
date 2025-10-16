@@ -99,7 +99,7 @@ export function Footer() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors group"
           >
-            <span>Designed & Developed by Enya Elvis (PL/24C/3367)</span>
+            <span>Designed & Developed by Enya Elvis</span>
             <Github className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </a>
         </div>

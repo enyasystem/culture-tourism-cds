@@ -66,7 +66,6 @@ const searchData = {
       author: {
         name: "Adaora Okafor",
         avatar: "/placeholder.svg?key=avatar1",
-        corpsId: "PL/23B/1234",
       },
       location: "Jos Wildlife Park",
       date: "2025-01-15",

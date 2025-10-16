@@ -14,7 +14,7 @@ const pendingContent = [
     type: "story",
     title: "Amazing Day at Jos Wildlife Park",
     author: "Adaora Okafor",
-    authorId: "PL/23B/1234",
+    // authorId removed to avoid exposing state codes
     avatar: "/placeholder.svg?key=avatar1",
     submittedAt: "2025-01-16T10:30:00Z",
     status: "pending",
@@ -26,7 +26,7 @@ const pendingContent = [
     type: "site",
     title: "New Cultural Center in Jos East",
     author: "Ibrahim Musa",
-    authorId: "PL/23B/5678",
+    // authorId removed to avoid exposing state codes
     avatar: "/placeholder.svg?key=avatar2",
     submittedAt: "2025-01-15T14:20:00Z",
     status: "pending",
@@ -38,7 +38,7 @@ const pendingContent = [
     type: "event",
     title: "Traditional Music Workshop",
     author: "Fatima Abdullahi",
-    authorId: "PL/23B/9012",
+    // authorId removed to avoid exposing state codes
     avatar: "/placeholder.svg?key=avatar3",
     submittedAt: "2025-01-15T09:15:00Z",
     status: "pending",
@@ -136,9 +136,6 @@ export function ContentManagement() {
                       <CardTitle className="text-lg">{item.title}</CardTitle>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{item.author}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {item.authorId}
-                        </Badge>
                         <span>•</span>
                         <span>{formatTimeAgo(item.submittedAt)}</span>
                       </div>
