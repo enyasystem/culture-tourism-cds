@@ -123,12 +123,14 @@ export default function StoriesPage() {
           </Link>
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground">Stories</h1>
-            <p className="text-muted-foreground">Manage corps member stories and experiences</p>
+            <p className="text-muted-foreground">Manage corps member stories and experiences...</p>
           </div>
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Story
-          </Button>
+          <Link href="/admin/stories/new">
+            <Button className="gap-2 cursor-pointer">
+              <Plus className="w-4 h-4" />
+              Add Story
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Cards */}
