@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface Story {
   id: string
@@ -39,6 +40,8 @@ export default function StoriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("all")
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     fetchStories()
@@ -125,7 +128,7 @@ export default function StoriesPage() {
             <h1 className="text-3xl font-bold text-foreground">Stories</h1>
             <p className="text-muted-foreground">Manage corps member stories and experiences...</p>
           </div>
-          <Link href="/admin/stories/page">
+          <Link href="/admin/stories/new">
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
               Add Story
@@ -273,13 +276,36 @@ export default function StoriesPage() {
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => router.push(`/admin/stories/${story.id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={async () => {
+                              const ok = window.confirm("Delete this story? This action cannot be undone.")
+                              if (!ok) return
+                              try {
+                                setDeletingId(story.id)
+                                const resp = await fetch(`/api/admin/stories/${story.id}`, { method: "DELETE" })
+                                if (!resp.ok && resp.status !== 204) {
+                                  const text = await resp.text()
+                                  console.error("Failed to delete story:", text)
+                                  alert("Failed to delete story. See console for details.")
+                                  return
+                                }
+                                // remove from local state
+                                setStories((s) => s.filter((x) => x.id !== story.id))
+                              } catch (e) {
+                                console.error(e)
+                                alert("An error occurred while deleting the story.")
+                              } finally {
+                                setDeletingId(null)
+                              }
+                            }}
+                          >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
+                            {deletingId === story.id ? "Deleting..." : "Delete"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
