@@ -39,6 +39,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
+
+      // Sync the session to the server so middleware can read cookies
+      try {
+        await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ event, session }),
+        })
+      } catch (e) {
+        // ignore sync errors - server-side auth will still work if cookies already exist
+      }
     })
 
     return () => subscription.unsubscribe()

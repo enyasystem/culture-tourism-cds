@@ -34,6 +34,22 @@ export default function LoginPage() {
 
       if (error) throw error
 
+      // After sign in we also POST the session to the server to set HTTP-only cookies
+      try {
+        // data.session may be undefined depending on supabase version; get the latest session
+        const { data: userData } = await supabase.auth.getUser()
+        const sessionResp = await supabase.auth.getSession()
+        const session = (sessionResp && (sessionResp as any).data?.session) || (data as any)?.session || null
+
+        await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ event: 'SIGNED_IN', session }),
+        })
+      } catch (e) {
+        // ignore - cookie sync is best-effort
+      }
+
       // After sign-in, fetch the authenticated user and their profile role.
       const { data: userData, error: getUserError } = await supabase.auth.getUser()
       if (!getUserError && userData?.user?.id) {
