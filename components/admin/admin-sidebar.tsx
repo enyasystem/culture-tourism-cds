@@ -21,7 +21,7 @@ import {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin", badge: null },
-  { icon: Users, label: "Corps Members", href: "/admin/users", badge: "245" },
+  // Removed Corps Members link per privacy request
   { icon: MapPin, label: "Cultural Sites", href: "/admin/sites", badge: null },
   { icon: Calendar, label: "Events", href: "/admin/events", badge: "12" },
   { icon: Camera, label: "Stories", href: "/admin/stories", badge: "8" },

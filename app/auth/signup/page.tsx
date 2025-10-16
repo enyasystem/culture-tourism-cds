@@ -61,8 +61,6 @@ export default function SignupPage() {
     confirmPassword: "",
     fullName: "",
     phone: "",
-    stateOfDeployment: "",
-    localGovernment: "",
     placeOfPrimaryAssignment: "",
     batchYear: "",
   })
@@ -95,8 +93,6 @@ export default function SignupPage() {
           data: {
             full_name: formData.fullName,
             phone: formData.phone,
-            state_of_deployment: formData.stateOfDeployment,
-            local_government: formData.localGovernment,
             place_of_primary_assignment: formData.placeOfPrimaryAssignment,
             batch_year: formData.batchYear,
           },
@@ -245,43 +241,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="stateOfDeployment" className="text-gray-700 font-medium">
-                    State of Deployment
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
-                    <Select onValueChange={(value) => handleInputChange("stateOfDeployment", value)}>
-                      <SelectTrigger className="pl-10 h-11 border-gray-300 focus:border-[#1A7B7B] focus:ring-[#1A7B7B]">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {NIGERIAN_STATES.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="localGovernment" className="text-gray-700 font-medium">
-                    Local Government
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      id="localGovernment"
-                      type="text"
-                      value={formData.localGovernment}
-                      onChange={(e) => handleInputChange("localGovernment", e.target.value)}
-                      className="pl-10 h-11 border-gray-300 focus:border-[#1A7B7B] focus:ring-[#1A7B7B]"
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* State and Local Government removed to protect deployment data */}
 
               <div className="space-y-2">
                 <Label htmlFor="placeOfPrimaryAssignment" className="text-gray-700 font-medium">

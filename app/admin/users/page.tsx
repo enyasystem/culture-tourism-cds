@@ -70,8 +70,7 @@ export default function UsersPage() {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.local_government?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesTab = selectedTab === "all" || user.role === selectedTab
 
@@ -179,7 +178,6 @@ export default function UsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Member</TableHead>
-                  <TableHead>Deployment</TableHead>
                   <TableHead>PPA</TableHead>
                   <TableHead>Batch</TableHead>
                   <TableHead>Role</TableHead>
@@ -204,12 +202,6 @@ export default function UsersPage() {
                           <div className="font-medium text-foreground">{user.full_name || "No name"}</div>
                           <div className="text-sm text-muted-foreground">{user.email}</div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{user.state_of_deployment || "Not set"}</div>
-                        <div className="text-muted-foreground">{user.local_government || "Not set"}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -296,7 +288,7 @@ export default function UsersPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-muted-foreground" />
@@ -316,10 +308,6 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium">State of Deployment</p>
-                      <p className="text-sm text-muted-foreground">{selectedUser.state_of_deployment || "Not set"}</p>
-                    </div>
                     <div>
                       <p className="text-sm font-medium">PPA</p>
                       <p className="text-sm text-muted-foreground">
