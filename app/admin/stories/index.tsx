@@ -287,18 +287,31 @@ export default function StoriesPage() {
                               if (!ok) return
                               try {
                                 setDeletingId(story.id)
-                                const resp = await fetch(`/api/admin/stories/${story.id}`, { method: "DELETE" })
-                                if (!resp.ok && resp.status !== 204) {
-                                  const text = await resp.text()
-                                  console.error("Failed to delete story:", text)
-                                  alert("Failed to delete story. See console for details.")
+                                const resp = await fetch(`/api/admin/stories/${story.id}`, {
+                                  method: "DELETE",
+                                  credentials: 'same-origin',
+                                })
+
+                                if (resp.status === 204) {
+                                  // success
+                                  setStories((s) => s.filter((x) => x.id !== story.id))
                                   return
                                 }
-                                // remove from local state
-                                setStories((s) => s.filter((x) => x.id !== story.id))
-                              } catch (e) {
+
+                                // not 204, try to surface server message
+                                let bodyText = await resp.text()
+                                try {
+                                  const parsed = JSON.parse(bodyText)
+                                  console.debug('DELETE response JSON:', parsed)
+                                  bodyText = JSON.stringify(parsed, null, 2)
+                                } catch {
+                                  // keep raw text
+                                }
+                                console.error(`Failed to delete story (status ${resp.status}):`, bodyText)
+                                alert(`Failed to delete story (status ${resp.status}):\n${bodyText}`)
+                              } catch (e: any) {
                                 console.error(e)
-                                alert("An error occurred while deleting the story.")
+                                alert("An error occurred while deleting the story: " + String(e))
                               } finally {
                                 setDeletingId(null)
                               }

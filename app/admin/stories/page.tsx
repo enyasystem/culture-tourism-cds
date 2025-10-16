@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -39,6 +40,8 @@ export default function StoriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("all")
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     fetchStories()
@@ -273,13 +276,49 @@ export default function StoriesPage() {
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => router.push(`/admin/stories/${story.id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={async () => {
+                              const ok = window.confirm("Delete this story? This action cannot be undone.")
+                              if (!ok) return
+                              try {
+                                setDeletingId(story.id)
+                                const resp = await fetch(`/api/admin/stories/${story.id}`, {
+                                  method: "DELETE",
+                                  credentials: 'same-origin',
+                                })
+
+                                if (resp.status === 204) {
+                                  // success
+                                  setStories((s) => s.filter((x) => x.id !== story.id))
+                                  return
+                                }
+
+                                // not 204, try to surface server message
+                                let bodyText = await resp.text()
+                                try {
+                                  const parsed = JSON.parse(bodyText)
+                                  console.debug('DELETE response JSON:', parsed)
+                                  bodyText = JSON.stringify(parsed, null, 2)
+                                } catch {
+                                  // keep raw text
+                                }
+                                console.error(`Failed to delete story (status ${resp.status}):`, bodyText)
+                                alert(`Failed to delete story (status ${resp.status}):\n${bodyText}`)
+                              } catch (e: any) {
+                                console.error(e)
+                                alert("An error occurred while deleting the story: " + String(e))
+                              } finally {
+                                setDeletingId(null)
+                              }
+                            }}
+                          >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
+                            {deletingId === story.id ? "Deleting..." : "Delete"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

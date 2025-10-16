@@ -31,11 +31,18 @@ export default function StoryEditor({ id }: { id?: string }) {
 
     ;(async () => {
       try {
-        const resp = await fetch(`/api/admin/stories/${id}`)
+        const resp = await fetch(`/api/admin/stories/${id}`, { credentials: 'same-origin' })
+        if (!resp.ok) {
+          const txt = await resp.text()
+          console.error('Failed to load story:', resp.status, txt)
+          alert(`Failed to load story (status ${resp.status}):\n${txt}`)
+          return
+        }
         const json = await resp.json()
         if (json.data) setForm(json.data)
       } catch (e) {
         console.error(e)
+        alert('Error loading story: ' + String(e))
       }
     })()
   }, [id])
@@ -50,17 +57,29 @@ export default function StoryEditor({ id }: { id?: string }) {
     try {
       storyCreateSchema.parse({ title: form.title, slug: form.slug, summary: form.summary, body: form.body, published: !!form.published, cover_image: form.cover_image })
       if (id) {
-        const resp = await fetch(`/api/admin/stories/${id}`, { method: "PATCH", body: JSON.stringify(form), headers: { "Content-Type": "application/json" } })
+        const resp = await fetch(`/api/admin/stories/${id}`, {
+          method: "PATCH",
+          credentials: 'same-origin',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
         if (!resp.ok) {
           const txt = await resp.text()
-          console.error('PATCH error', txt)
+          console.error('PATCH error', resp.status, txt)
+          alert(`PATCH failed (status ${resp.status}):\n${txt}`)
           throw new Error(txt)
         }
       } else {
-        const resp = await fetch(`/api/admin/stories`, { method: "POST", body: JSON.stringify(form), headers: { "Content-Type": "application/json" } })
+        const resp = await fetch(`/api/admin/stories`, {
+          method: "POST",
+          credentials: 'same-origin',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
         if (!resp.ok) {
           const txt = await resp.text()
-          console.error('POST error', txt)
+          console.error('POST error', resp.status, txt)
+          alert(`POST failed (status ${resp.status}):\n${txt}`)
           throw new Error(txt)
         }
       }
