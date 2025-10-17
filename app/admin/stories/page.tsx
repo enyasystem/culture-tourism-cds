@@ -11,10 +11,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 interface Story {
   id: string
@@ -44,6 +46,8 @@ export default function StoriesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [newStory, setNewStory] = useState({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
 
   useEffect(() => {
     fetchStories()
@@ -130,12 +134,65 @@ export default function StoriesPage() {
             <h1 className="text-3xl font-bold text-foreground">Stories</h1>
             <p className="text-muted-foreground">Manage corps member stories and experiences...</p>
           </div>
-          <Link href="/admin/stories/new">
-            <Button className="gap-2 cursor-pointer">
-              <Plus className="w-4 h-4" />
-              Add Story
-            </Button>
-          </Link>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 cursor-pointer">
+                <Plus className="w-4 h-4" />
+                Add Story
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Story</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Title</Label>
+                  <Input value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Author Name</Label>
+                  <Input value={newStory.author_name} onChange={(e) => setNewStory({ ...newStory, author_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Excerpt</Label>
+                  <Input value={newStory.excerpt} onChange={(e) => setNewStory({ ...newStory, excerpt: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Content</Label>
+                  <Textarea value={newStory.content} onChange={(e) => setNewStory({ ...newStory, content: e.target.value })} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const resp = await fetch(`/api/admin/stories`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(newStory),
+                        })
+                        if (resp.status === 201) {
+                          toast({ title: "Created", description: "Story created", variant: "success" })
+                          setIsCreateOpen(false)
+                          setNewStory({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+                          fetchStories()
+                        } else {
+                          const text = await resp.text()
+                          toast({ title: "Failed", description: text, variant: "error" })
+                        }
+                      } catch (err) {
+                        console.error(err)
+                        toast({ title: "Error", description: String(err), variant: "error" })
+                      }
+                    }}
+                  >
+                    Create
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Cards */}

@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
+import CreateStoryModal from '@/components/admin/create-story-modal'
 import { useRouter } from "next/navigation"
 
 interface Story {
@@ -130,12 +131,7 @@ export default function StoriesPage() {
             <h1 className="text-3xl font-bold text-foreground">Stories</h1>
             <p className="text-muted-foreground">Manage corps member stories and experiences...</p>
           </div>
-          <Link href="/admin/stories/new">
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Story
-            </Button>
-          </Link>
+          <CreateStoryModal onCreated={() => fetchStories()} />
         </div>
 
         {/* Stats Cards */}

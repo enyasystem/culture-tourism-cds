@@ -15,6 +15,7 @@ import { Search, MoreHorizontal, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } f
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
+import CreateStoryModal from '@/components/admin/create-story-modal'
 
 interface Story {
   id: string
@@ -197,9 +198,7 @@ export function ContentManagement() {
             <Clock className="w-3 h-3" />
             {stats.pending} Pending
           </Badge>
-          <Link href="/admin/stories/new">
-            <Button className="gap-2">Add Story</Button>
-          </Link>
+          <CreateStoryModal onCreated={() => fetchStories()} />
         </div>
       </div>
 
