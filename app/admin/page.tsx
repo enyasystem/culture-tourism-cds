@@ -139,10 +139,10 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Jos Culture & Tourism Platform Admin</p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="gap-1">
+            {/* <Badge variant="secondary" className="gap-1">
               <TrendingUp className="w-3 h-3" />
               Platform Growing
-            </Badge>
+            </Badge> */}
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
               Add Content
@@ -191,92 +191,36 @@ export default function AdminDashboard() {
 
           {/* Sidebar Content */}
           <div className="space-y-6">
-            {/* Recent Activity */}
+            {/* Quick Actions (moved to sidebar) */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Recent Activity
-                </CardTitle>
+                <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground">{activity.user}</p>
-                      <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Top Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Top Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {topContent.map((content) => (
-                  <div key={content.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-foreground line-clamp-1">{content.title}</h4>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {content.type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{content.views}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-3 h-3" />
-                        <span>{content.likes}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{content.comments}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                    <MapPin className="w-6 h-6" />
+                    <span className="text-sm">Add Cultural Site</span>
+                  </Button>
+                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                    <Calendar className="w-6 h-6" />
+                    <span className="text-sm">Create Event</span>
+                  </Button>
+                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                    <Users className="w-6 h-6" />
+                    <span className="text-sm">Manage Users</span>
+                  </Button>
+                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                    <BarChart3 className="w-6 h-6" />
+                    <span className="text-sm">View Analytics</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-                <MapPin className="w-6 h-6" />
-                <span>Add Cultural Site</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-                <Calendar className="w-6 h-6" />
-                <span>Create Event</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-                <Users className="w-6 h-6" />
-                <span>Manage Users</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
-                <BarChart3 className="w-6 h-6" />
-                <span>View Analytics</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
     </AdminLayout>
   )
