@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -18,15 +18,17 @@ import {
   ChevronRight,
   LogOut,
 } from "lucide-react"
+import { createBrowserClient } from "@supabase/ssr"
 
+// menuItems is rendered dynamically; badges may be updated at runtime
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin", badge: null },
   // Removed Corps Members link per privacy request
   { icon: MapPin, label: "Cultural Sites", href: "/admin/sites", badge: null },
-  { icon: Calendar, label: "Events", href: "/admin/events", badge: "12" },
-  { icon: Camera, label: "Stories", href: "/admin/stories", badge: "8" },
+  { icon: Calendar, label: "Events", href: "/admin/events", badge: null },
+  { icon: Camera, label: "Stories", href: "/admin/stories", badge: null },
   { icon: FileText, label: "Content", href: "/admin/content", badge: null },
-  { icon: BarChart3, label: "Analytics", href: "/admin/analytics", badge: null },
+  { icon: BarChart3, label: "Analytics...", href: "/admin/analytics", badge: null },
   { icon: Settings, label: "Settings", href: "/admin/settings", badge: null },
 ]
 
@@ -37,6 +39,22 @@ interface AdminSidebarProps {
 export function AdminSidebar({ currentPath = "/admin" }: AdminSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const router = useRouter()
+  const [counts, setCounts] = useState<{ events: number; stories: number }>({ events: 0, stories: 0 })
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+        const { count: eventsCount } = await supabase.from("events").select("id", { head: true, count: "exact" })
+        const { count: storiesCount } = await supabase.from("stories").select("id", { head: true, count: "exact" })
+        setCounts({ events: (eventsCount as number) || 0, stories: (storiesCount as number) || 0 })
+      } catch (err) {
+        console.error("Failed to fetch sidebar counts:", err)
+      }
+    }
+
+    fetchCounts()
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem("admin_session")
