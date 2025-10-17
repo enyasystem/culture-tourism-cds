@@ -15,30 +15,31 @@ export function Navigation() {
   const isActive = (path: string) => pathname === path
 
   return (
-    <nav className="fixed top-4 left-4 right-4 z-50 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-gray-200 rounded-[35px] shadow-sm w-full max-w-3xl">
+      <div className="px-6">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          {/* left: logo */}
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="relative w-8 h-8">
               <Image src="/logo.png" alt="Culture & Tourism" fill className="object-contain" priority />
             </div>
-            <span className="font-semibold text-gray-900 text-lg">Culture & Tourism</span>
+            <span className="font-semibold text-black tracking-wide text-lg">C & T</span>
           </Link>
 
+          {/* center: links */}
           <div className="hidden md:flex items-center gap-8">
             <div
               className="relative"
               onMouseEnter={() => setIsExploreOpen(true)}
               onMouseLeave={() => setIsExploreOpen(false)}
             >
-              <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+              <button className="flex items-center gap-2 text-sm font-medium text-black hover:text-[#1A7B7B] transition-colors">
                 Explore
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${isExploreOpen ? "rotate-180" : ""}`}
-                />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExploreOpen ? "rotate-180" : ""}`} />
               </button>
+
               {isExploreOpen && (
-                <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-2">
                     <Link
                       href="/sites"
@@ -48,10 +49,8 @@ export function Navigation() {
                         <MapPin className="w-5 h-5 text-[#1A7B7B]" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">Cultural Sites</div>
-                        <div className="text-sm text-gray-600">
-                          Explore Jos's rich cultural heritage and historical landmarks
-                        </div>
+                        <div className="font-medium text-black mb-1">Cultural Sites</div>
+                        <div className="text-sm text-gray-600">Explore Jos's rich cultural heritage and historical landmarks</div>
                       </div>
                     </Link>
                     <Link
@@ -62,7 +61,7 @@ export function Navigation() {
                         <Calendar className="w-5 h-5 text-[#1A7B7B]" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">Cultural Events</div>
+                        <div className="font-medium text-black mb-1">Cultural Events</div>
                         <div className="text-sm text-gray-600">Join exciting cultural events and CDS activities</div>
                       </div>
                     </Link>
@@ -74,7 +73,7 @@ export function Navigation() {
                         <BookOpen className="w-5 h-5 text-[#1A7B7B]" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">CDS Stories</div>
+                        <div className="font-medium text-black mb-1">CDS Stories</div>
                         <div className="text-sm text-gray-600">Read inspiring stories from corps members</div>
                       </div>
                     </Link>
@@ -83,80 +82,54 @@ export function Navigation() {
               )}
             </div>
 
-            <Link href="/community" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            <Link href="/community" className="text-sm font-medium text-black hover:text-[#1A7B7B] transition-colors">
               Community
             </Link>
 
-            <Link href="/about" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+            <Link href="/about" className="text-sm font-medium text-black hover:text-[#1A7B7B] transition-colors">
               About
             </Link>
           </div>
 
+          {/* right: CTA and mobile menu */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/auth/login"
-              className="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Log in
-            </Link>
-
-            <Link href="/auth/signup">
-              <Button className="bg-[#1A7B7B] hover:bg-[#0F766E] text-white px-5 py-2 h-9 rounded-full text-sm font-medium transition-all duration-200 hover:shadow-md">
-                Get started
-              </Button>
-            </Link>
+            <div className="hidden md:block">
+              <Link href="/contact">
+                <button className="relative inline-flex items-center justify-center px-6 py-2 rounded-full bg-[#1A7B7B] text-white font-semibold hover:bg-[#156666] transition-all duration-200">
+                  Get In Touch
+                </button>
+              </Link>
+            </div>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
+              className="md:hidden p-2 text-black hover:text-[#1A7B7B] transition-colors"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
+        {/* mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100">
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/sites"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
+          <div className="md:hidden py-4">
+            <div className="flex flex-col gap-3 bg-white/5 rounded-lg p-3">
+              <Link href="/sites" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B]">
                 Cultural Sites
               </Link>
-              <Link
-                href="/events"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link href="/events" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B]">
                 Cultural Events
               </Link>
-              <Link
-                href="/stories"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link href="/stories" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B]">
                 CDS Stories
               </Link>
-              <Link
-                href="/community"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Community
-              </Link>
-              <Link
-                href="/about"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link href="/about" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B]">
                 About
               </Link>
-              <div className="pt-3 border-t border-gray-100 mt-2">
-                <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-gray-900">
-                    Log in
+              <div className="pt-3 border-t border-gray-200 mt-2">
+                <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start bg-[#1A7B7B] text-white font-semibold hover:bg-[#156666]">
+                    Get In Touch
                   </Button>
                 </Link>
               </div>
