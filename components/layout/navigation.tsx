@@ -44,7 +44,7 @@ export function Navigation() {
             <div className="relative w-8 h-8">
               <Image src="/logo.png" alt="Culture & Tourism" fill className="object-contain" priority />
             </div>
-            <span className="font-semibold text-black tracking-wide text-lg">C & T</span>
+            <span className="font-semibold text-black tracking-wide text-lg">Culture & Tourism</span>
           </Link>
 
           {/* center: links */}

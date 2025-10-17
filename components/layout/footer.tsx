@@ -92,7 +92,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/20 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/60">© 2025 Culture & Tourism CDS Platform. All rights reserved....</p>
+          <p className="text-sm text-white/60">© 2025 Culture & Tourism CDS Platform. All rights reserved</p>
           <a
             href="https://github.com/enyasystem"
             target="_blank"

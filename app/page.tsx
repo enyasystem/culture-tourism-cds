@@ -197,7 +197,7 @@ export default function HomePage() {
                 <input
                   type="text"
                   placeholder="Explore Here..."
-                  className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
+                  className="w-full px-6 py-4 rounded-[35px] bg-white/95 backdrop-blur-sm text-gray-800 placeholder:text-gray-400 text-lg focus:outline-none focus:ring-2 focus:ring-[#1A7B7B] shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
                 />
                 <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 hover:scale-110">
                   <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
