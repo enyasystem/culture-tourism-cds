@@ -28,7 +28,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     console.debug('[api/admin/stories] POST body:', body)
-    const parsed = storyCreateSchema.parse(body)
+    // Ensure admin-created stories are published by default.
+    const parsedInput = storyCreateSchema.parse(body)
+    const parsed = { ...parsedInput, published: true }
     const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const restUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/stories`
     const resp = await fetch(restUrl, {

@@ -7,11 +7,16 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/toast"
+import { createClient } from "@/lib/supabase/client"
 
 export default function CreateStoryModal({ onCreated }: { onCreated?: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
   const [newStory, setNewStory] = useState({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
+  const supabase = createClient()
+  const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET ?? "stories"
 
   const handleCreate = async () => {
     try {
@@ -24,13 +29,37 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
           .replace(/^-+|-+$/g, "")
           .slice(0, 200)
 
+      let coverImageUrl: string | undefined = undefined
+
+      if (selectedFile) {
+        try {
+          setIsUploading(true)
+          // create a unique path for the file
+          const filename = `${Date.now()}-${selectedFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_")}`
+          const path = `stories/${filename}`
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from(BUCKET)
+            .upload(path, selectedFile, { cacheControl: "3600", upsert: false })
+
+          if (uploadError) throw uploadError
+
+          // get public URL
+          const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path)
+          // @ts-ignore publicData typing may vary depending on supabase client version
+          coverImageUrl = publicData?.publicUrl || publicData?.public_url || undefined
+        } finally {
+          setIsUploading(false)
+        }
+      }
+
       const payload = {
         title: newStory.title,
         slug: slugify(newStory.title || "untitled"),
         summary: newStory.excerpt || undefined,
         body: newStory.content || undefined,
         published: false,
-        cover_image: undefined,
+        cover_image: coverImageUrl,
       }
 
       const resp = await fetch(`/api/admin/stories`, {
@@ -42,6 +71,7 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
         toast({ title: "Created", description: "Story created", variant: "success" })
         setIsOpen(false)
         setNewStory({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+        setSelectedFile(null)
         onCreated?.()
       } else {
         const text = await resp.text()
@@ -80,6 +110,15 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
           <div>
             <Label>Content</Label>
             <Textarea value={newStory.content} onChange={(e) => setNewStory({ ...newStory, content: e.target.value })} />
+          </div>
+          <div>
+            <Label>Cover image (optional)</Label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+            />
+            {isUploading && <p className="text-sm text-muted-foreground">Uploading image...</p>}
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
