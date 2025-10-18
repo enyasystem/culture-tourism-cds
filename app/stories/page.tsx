@@ -96,23 +96,36 @@ export default function StoriesPage() {
   useEffect(() => {
     const controller = new AbortController()
     let mounted = true
+    let pollTimer: number | null = null
 
-    const load = async () => {
+    const fetchStories = async (opts?: { signal?: AbortSignal }) => {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/stories', { signal: controller.signal })
+        const res = await fetch('/api/stories', { signal: opts?.signal })
         if (!res.ok) {
           const txt = await res.text().catch(() => '')
           throw new Error(txt || `Failed to fetch stories: ${res.status}`)
         }
-        const data: Story[] = await res.json()
+        const raw = await res.json()
+        // Accept two shapes: either the public API returns an array, or
+        // some endpoints return { data: [] } (admin-style). Normalize to an array.
+        let data: Story[] = []
+        if (Array.isArray(raw)) {
+          data = raw
+        } else if (raw && Array.isArray((raw as any).data)) {
+          data = (raw as any).data
+        } else {
+          console.debug('[stories page] unexpected /api/stories response shape', raw)
+          data = []
+        }
         if (!mounted) return
         setStories(data)
-        setFilteredStories(data)
+        // only replace filteredStories when there is no active search/tag
+        setFilteredStories((prev) => (!searchQuery && !selectedTag ? data : prev))
         console.debug('[stories page] fetched stories count:', data?.length, data?.[0])
       } catch (err: any) {
-        if (err.name === 'AbortError') return
+        if (err?.name === 'AbortError') return
         console.error('Failed to load stories', err)
         setError(String(err?.message || err))
       } finally {
@@ -120,10 +133,35 @@ export default function StoriesPage() {
       }
     }
 
-    load()
+    // initial load
+    fetchStories({ signal: controller.signal })
+
+    // refetch on window focus so admin changes become visible quickly
+    const onFocus = () => {
+      // create a fresh controller for this one-off fetch
+      const c = new AbortController()
+      fetchStories({ signal: c.signal }).catch(() => {})
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') onFocus()
+    }
+
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('visibilitychange', onVisibility)
+
+    // poll periodically (20s) for updates
+    pollTimer = window.setInterval(() => {
+      const c = new AbortController()
+      fetchStories({ signal: c.signal }).catch(() => {})
+    }, 20_000)
+
     return () => {
       mounted = false
       controller.abort()
+      if (pollTimer) window.clearInterval(pollTimer)
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
@@ -189,6 +227,22 @@ export default function StoriesPage() {
   const totalLikes = stories.reduce((sum: number, story: Story) => sum + (story.likes || 0), 0)
   const totalComments = stories.reduce((sum: number, story: Story) => sum + (story.comments || 0), 0)
   const featuredStory = stories[0]
+  // Show a full-page loading state (same as admin) while the initial
+  // stories request is in-flight and no stories have been loaded yet.
+  if (isLoading && stories.length === 0) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Loading stories...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-background">

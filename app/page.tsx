@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
+import { StoryCard } from "@/components/stories/story-card"
+import { StoriesGrid } from "@/components/stories/stories-grid"
 import { UserOnboarding } from "@/components/onboarding/user-onboarding"
 
 export default function HomePage() {
@@ -872,7 +874,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Upcoming Events Section */}
+      {/* Featured CDS Stories (replaces Featured Upcoming Events) */}
       <section
         ref={eventsRef}
         className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
@@ -886,251 +888,26 @@ export default function HomePage() {
                 eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
             >
-              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Featured Upcoming Events</h2>
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Corps Stories</h2>
               <div
                 className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
                 style={{ width: eventsVisible ? "96px" : "0px" }}
               ></div>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Join us for exciting cultural events and CDS activities
-              </p>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">Recent stories shared by corps members</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Event 1 */}
-              <div
-                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
-                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-                style={{ transitionDelay: eventsVisible ? "200ms" : "0ms" }}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src="/national-museum-jos-cultural-artifacts.jpg"
-                    alt="Cultural Heritage Workshop"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Feb 15
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 p-6">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Cultural Heritage Workshop</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Learn about Jos's archaeological treasures and preservation techniques
-                    </p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>10:00 AM</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      <span>50 spots</span>
-                    </div>
-                  </div>
-                  <Link href="/events/1">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
-                      Register Now
-                    </button>
-                  </Link>
-                </div>
-              </div>
+            {/* Stories grid will be populated via client fetch of admin stories */}
+            <StoriesGrid visible={eventsVisible} />
 
-              {/* Event 2 */}
-              <div
-                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
-                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-                style={{ transitionDelay: eventsVisible ? "300ms" : "0ms" }}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src="/shere-hills-jos-plateau-landscape.jpg"
-                    alt="Shere Hills Hiking Tour"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Feb 20
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 p-6">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Shere Hills Hiking Tour</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Experience breathtaking views and rock formations with fellow corps members
-                    </p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>7:00 AM</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      <span>30 spots</span>
-                    </div>
-                  </div>
-                  <Link href="/events/2">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
-                      Register Now
-                    </button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Event 3 */}
-              <div
-                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
-                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-                style={{ transitionDelay: eventsVisible ? "400ms" : "0ms" }}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src="/jos-wildlife-park-plateau-state.jpg"
-                    alt="Wildlife Conservation Talk"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Feb 25
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 p-6">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Wildlife Conservation Talk</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Learn about wildlife preservation and sustainable tourism practices
-                    </p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>2:00 PM</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      <span>40 spots</span>
-                    </div>
-                  </div>
-                  <Link href="/events/3">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
-                      Register Now
-                    </button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Event 4 */}
-              <div
-                className={`bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full ${
-                  eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                }`}
-                style={{ transitionDelay: eventsVisible ? "500ms" : "0ms" }}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src="/abstract-cultural-pattern-jos-plateau.jpg"
-                    alt="Peace Building Forum"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Mar 1
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 p-6">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Peace Building Forum</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Engage in discussions on promoting peace and cultural understanding
-                    </p>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>11:00 AM</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      <span>60 spots</span>
-                    </div>
-                  </div>
-                  <Link href="/events/4">
-                    <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-colors duration-300 hover:scale-105">
-                      Register Now
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* View All Events Button */}
+            {/* View All Stories Button */}
             <div
               className={`text-center mt-12 transition-all duration-800 delay-600 ${
                 eventsVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
               }`}
             >
-              <Link href="/events">
+              <Link href="/stories">
                 <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-2 duration-300">
-                  View All Events
+                  View All Stories
                 </button>
               </Link>
             </div>
