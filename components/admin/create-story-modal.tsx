@@ -18,6 +18,7 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null)
   const [serverDiagnostics, setServerDiagnostics] = useState<string | null>(null)
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null)
   const { toast } = useToast()
   const supabase = createClient()
   const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET ?? "stories"
@@ -56,6 +57,7 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
               const text = await uploadResp.text()
               console.error('Image upload failed', { status: uploadResp.status, text })
               setUploadErrorMessage(text || `Status ${uploadResp.status}`)
+              setServerDiagnostics(text)
               toast({ title: 'Upload failed', description: text || `Status ${uploadResp.status}`, variant: 'error' })
               throw new Error(text || `Status ${uploadResp.status}`)
             }
@@ -63,6 +65,12 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
             const json = await uploadResp.json()
             coverImageUrl = json.publicUrl
             setUploadProgress(100)
+            // success indicator
+            const okMsg = json.message || 'Upload complete'
+            setUploadSuccessMessage(okMsg)
+            setServerDiagnostics(null)
+            setUploadErrorMessage(null)
+            toast({ title: 'Upload complete', description: okMsg, variant: 'success' })
           } catch (uploadErr) {
             console.error("Upload error (caught)", uploadErr)
             throw uploadErr

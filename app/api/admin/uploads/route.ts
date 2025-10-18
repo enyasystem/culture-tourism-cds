@@ -25,6 +25,14 @@ export async function POST(req: Request) {
     const arrayBuffer = await req.arrayBuffer()
     const body = Buffer.from(arrayBuffer)
 
+    // Optional server-side file size limit (bytes); default 5 MB
+    const MAX_BYTES = Number(process.env.UPLOAD_MAX_BYTES) || 5 * 1024 * 1024
+    if (body.length > MAX_BYTES) {
+      const msg = `File too large. Maximum allowed size is ${Math.round(MAX_BYTES / 1024 / 1024)} MB.`
+      console.debug('[api/admin/uploads] file too large', { size: body.length, max: MAX_BYTES })
+      return NextResponse.json({ error: 'File too large', code: 'FILE_TOO_LARGE', message: msg }, { status: 413 })
+    }
+
     const url = `${base}/storage/v1/object/${BUCKET}/${encodeURIComponent(path)}`
 
     const resp = await fetch(url, {
@@ -40,13 +48,31 @@ export async function POST(req: Request) {
     if (!resp.ok) {
       const text = await resp.text()
       console.error('[api/admin/uploads] Supabase storage upload failed', resp.status, text)
-      return NextResponse.json({ error: 'Upload failed', diagnostics: { status: resp.status, body: text } }, { status: resp.status })
+
+      // Try to parse JSON error from Supabase storage
+      let parsed: any = null
+      try {
+        parsed = JSON.parse(text)
+      } catch (e) {
+        parsed = null
+      }
+
+      // Map common Supabase storage errors to friendly structured codes
+      if (parsed && parsed.error && parsed.statusCode) {
+        const statusCode = String(parsed.statusCode)
+        if (statusCode === '415' || parsed.error === 'invalid_mime_type') {
+          return NextResponse.json({ error: 'Invalid file type', code: 'INVALID_MIME', message: String(parsed.message || 'Invalid mime type'), diagnostics: parsed }, { status: 415 })
+        }
+      }
+
+      // Fallback: return raw diagnostics
+      return NextResponse.json({ error: 'Upload failed', code: 'UPLOAD_FAILED', message: String(text || 'Unknown'), diagnostics: { status: resp.status, body: text } }, { status: resp.status })
     }
 
     // public URL for object
     const publicUrl = `${base}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(path)}`
 
-    return NextResponse.json({ publicUrl })
+    return NextResponse.json({ success: true, publicUrl, message: 'Upload complete' })
   } catch (e: any) {
     console.error('[api/admin/uploads] error', e)
     return NextResponse.json({ error: String(e) }, { status: 500 })

@@ -27,12 +27,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const handleOpenChange = (val: boolean) => {
     setOpen(val)
     if (!val) {
-      // remove first toast after it closes
-      setToasts((t) => t.slice(1))
+      // remove the most-recent toast after it closes
+      setToasts((t) => {
+        if (t.length <= 1) return []
+        return t.slice(0, -1)
+      })
     }
   }
 
-  const current = toasts[0]
+  // show the newest toast (last in the queue) so rapid actions don't show older messages
+  const current = toasts.length > 0 ? toasts[toasts.length - 1] : undefined
 
   return (
     <ToastContext.Provider value={{ toast }}>
@@ -42,6 +46,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <ToastPrimitive.Root
             open={open}
             onOpenChange={handleOpenChange}
+            duration={4000}
             className={cn("data-[swipe=tap]:animate-toast-hide fixed bottom-6 right-6 z-50 w-[320px] rounded-lg border bg-popover p-4 shadow-md")}
           >
             <div className="flex items-start gap-3">
@@ -53,13 +58,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 ) : null}
               </div>
               <div>
-                {current.title && <div className="font-semibold">{current.title}</div>}
-                {current.description && <div className="text-sm text-muted-foreground">{current.description}</div>}
+                {current.title && (
+                  <ToastPrimitive.Title className="font-semibold">{current.title}</ToastPrimitive.Title>
+                )}
+                {current.description && (
+                  <ToastPrimitive.Description className="text-sm text-muted-foreground">{current.description}</ToastPrimitive.Description>
+                )}
               </div>
             </div>
-            <ToastPrimitive.Viewport />
           </ToastPrimitive.Root>
         )}
+
+        {/* Viewport should be present within the provider so toasts can render reliably */}
+        <ToastPrimitive.Viewport className="fixed bottom-6 right-6 z-50" />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>
   )
