@@ -22,13 +22,14 @@ interface Story {
   title: string
   content: string
   excerpt: string | null
-  author_name: string | null
-  author_id: string
+  // author_id removed
   category: string
   status: string
   is_featured: boolean
   views_count: number
-  image_url: string | null
+  image_url?: string | null
+  cover_image?: string | null
+  summary?: string | null
   tags: string[] | null
   state: string | null
   location: string | null
@@ -51,25 +52,30 @@ export function ContentManagement() {
   }, [])
 
   const fetchStories = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
+    try {
+      const res = await fetch('/api/admin/stories')
+      if (!res.ok) {
+        console.error('Failed to fetch /api/admin/stories', await res.text())
+        setLoading(false)
+        return
+      }
+      const json = await res.json()
+      const rows = json?.data || []
+      setStories(rows)
 
-    const { data, error } = await supabase.from("stories").select("*").order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching stories:", error)
-    } else {
-      setStories(data || [])
+      // author_id/profile resolution removed; UI will not attempt to resolve authors
+    } catch (e) {
+      console.error('fetchStories error', e)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const filteredStories = stories.filter((story) => {
+    const resolvedAuthor = ''.toString()
     const matchesSearch =
       story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.author_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resolvedAuthor.includes(searchTerm.toLowerCase()) ||
       story.category.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesTab = selectedTab === "all" || story.status === selectedTab
@@ -148,13 +154,16 @@ export function ContentManagement() {
   const handleDelete = async (story: Story) => {
     const ok = window.confirm("Delete this story? This action cannot be undone.")
     if (!ok) return
+    // optimistic UI: remove immediately, restore on error
+    const prev = stories
+    setStories((s) => s.filter((x) => x.id !== story.id))
+    setDeletingId(story.id)
+    toast({ title: "Deleting", description: "Deleting story...", variant: "info" })
+
     try {
-      setDeletingId(story.id)
-      toast({ title: "Deleting", description: "Deleting story...", variant: "info" })
       const resp = await fetch(`/api/admin/stories/${story.id}`, { method: "DELETE", credentials: "same-origin" })
 
       if (resp.status === 204) {
-        setStories((s) => s.filter((x) => x.id !== story.id))
         toast({ title: "Deleted", description: "Story deleted successfully", variant: "success" })
         return
       }
@@ -165,9 +174,12 @@ export function ContentManagement() {
         bodyText = JSON.stringify(parsed, null, 2)
       } catch {}
       console.error(`Failed to delete story (status ${resp.status}):`, bodyText)
+      // restore
+      setStories(prev)
       toast({ title: "Failed to delete", description: `Status ${resp.status}: ${bodyText}`, variant: "error" })
     } catch (e: any) {
       console.error(e)
+      setStories(prev)
       toast({ title: "Error", description: String(e), variant: "error" })
     } finally {
       setDeletingId(null)
@@ -269,28 +281,29 @@ export function ContentManagement() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                        {story.image_url ? (
-                          <img src={story.image_url || "/placeholder.svg"} alt={story.title} className="w-full h-full object-cover" />
+                        {(story.cover_image || story.image_url) ? (
+                          <img src={story.cover_image || story.image_url || "/placeholder.svg"} alt={story.title} className="w-full h-full object-cover" />
                         ) : (
                           <Camera className="w-6 h-6 text-muted-foreground" />
                         )}
                       </div>
                       <div className="max-w-[300px]">
                         <div className="font-medium text-foreground">{story.title}</div>
-                        <div className="text-sm text-muted-foreground line-clamp-2">{story.excerpt || story.content?.substring(0, 100) + "..."}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-2">{(() => {
+                          const txt = (story.excerpt as any) ?? (story.summary as any) ?? (story.content as any) ?? ""
+                          return txt ? String(txt).substring(0, 100) + (String(txt).length > 100 ? "..." : "") : null
+                        })()}</div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <AvatarFallback>
-                          {story.author_name?.split(" ").map((n) => n[0]).join("") || "U"}
-                        </AvatarFallback>
+                        <AvatarFallback>U</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="text-sm font-medium">{story.author_name || "Unknown"}</div>
-                        <div className="text-xs text-muted-foreground">{story.author_id}</div>
+                        <div className="text-sm font-medium">Unknown</div>
+                        <div className="text-xs text-muted-foreground">&nbsp;</div>
                       </div>
                     </div>
                   </TableCell>
@@ -365,13 +378,11 @@ export function ContentManagement() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarFallback>
-                      {selectedStory.author_name?.split(" ").map((n) => n[0]).join("") || "U"}
-                    </AvatarFallback>
+                    <AvatarFallback>U</AvatarFallback>
                   </Avatar>
                   <div>
                     <h3 className="text-xl font-semibold">{selectedStory.title}</h3>
-                    <p className="text-muted-foreground">by {selectedStory.author_name || "Unknown"} ({selectedStory.author_id})</p>
+                    <p className="text-muted-foreground">by Unknown</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline">{selectedStory.category}</Badge>
                       <span className="text-sm text-muted-foreground">•</span>

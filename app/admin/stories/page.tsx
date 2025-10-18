@@ -23,13 +23,14 @@ interface Story {
   title: string
   content: string
   excerpt: string | null
-  author_name: string | null
-  author_id: string
+  summary?: string | null
+  // author_id removed
   category: string
   status: string
   is_featured: boolean
   views_count: number
-  image_url: string | null
+  image_url?: string | null
+  cover_image?: string | null
   tags: string[] | null
   state: string | null
   location: string | null
@@ -47,32 +48,39 @@ export default function StoriesPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [newStory, setNewStory] = useState({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+  const [newStory, setNewStory] = useState({ title: "", content: "", excerpt: "", category: "experience" })
+  // author/profile resolution removed
 
   useEffect(() => {
     fetchStories()
   }, [])
 
   const fetchStories = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
+    try {
+      const res = await fetch('/api/admin/stories')
+      if (!res.ok) {
+        const t = await res.text()
+        console.error('Failed to fetch /api/admin/stories', res.status, t)
+        setLoading(false)
+        return
+      }
+      const json = await res.json()
+      const rows = json?.data || []
+      setStories(rows)
 
-    const { data, error } = await supabase.from("stories").select("*").order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching stories:", error)
-    } else {
-      setStories(data || [])
+      // author/profile resolution removed
+      setLoading(false)
+    } catch (e) {
+      console.error('fetchStories error', e)
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const filteredStories = stories.filter((story) => {
+    const resolvedAuthor = ''.toString()
     const matchesSearch =
       story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.author_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resolvedAuthor.includes(searchTerm.toLowerCase()) ||
       story.category.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesTab = selectedTab === "all" || story.status === selectedTab
@@ -143,16 +151,12 @@ export default function StoriesPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Story</DialogTitle>
+                <DialogTitle>Add New Story...</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+                <div className="space-y-3">
                 <div>
                   <Label>Title</Label>
                   <Input value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Author Name</Label>
-                  <Input value={newStory.author_name} onChange={(e) => setNewStory({ ...newStory, author_name: e.target.value })} />
                 </div>
                 <div>
                   <Label>Excerpt</Label>
@@ -189,7 +193,7 @@ export default function StoriesPage() {
                         if (resp.status === 201) {
                           toast({ title: "Created", description: "Story created", variant: "success" })
                           setIsCreateOpen(false)
-                          setNewStory({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+                          setNewStory({ title: "", content: "", excerpt: "", category: "experience" })
                           fetchStories()
                         } else {
                           const data = await resp.json().catch(async () => ({ raw: await resp.text() }))
@@ -288,9 +292,9 @@ export default function StoriesPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                          {story.image_url ? (
+                          {(story.cover_image || story.image_url) ? (
                             <img
-                              src={story.image_url || "/placeholder.svg"}
+                              src={story.cover_image || story.image_url || "/placeholder.svg"}
                               alt={story.title}
                               className="w-full h-full object-cover"
                             />
@@ -301,7 +305,10 @@ export default function StoriesPage() {
                         <div className="max-w-[300px]">
                           <div className="font-medium text-foreground">{story.title}</div>
                           <div className="text-sm text-muted-foreground line-clamp-2">
-                            {story.excerpt || story.content?.substring(0, 100) + "..."}
+                            {(() => {
+                              const txt = (story.excerpt as any) ?? (story.summary as any) ?? (story.content as any) ?? ""
+                              return txt ? String(txt).substring(0, 100) + (String(txt).length > 100 ? "..." : "") : null
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -309,16 +316,11 @@ export default function StoriesPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback>
-                            {story.author_name
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("") || "U"}
-                          </AvatarFallback>
+                          <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="text-sm font-medium">{story.author_name || "Unknown"}</div>
-                          <div className="text-xs text-muted-foreground">{story.author_id}</div>
+                          <div className="text-sm font-medium">Unknown</div>
+                          <div className="text-xs text-muted-foreground">&nbsp;</div>
                         </div>
                       </div>
                     </TableCell>
@@ -361,22 +363,23 @@ export default function StoriesPage() {
                             onClick={async () => {
                               const ok = window.confirm("Delete this story? This action cannot be undone.")
                               if (!ok) return
+                              // optimistic remove
+                              const prev = stories
+                              setStories((s) => s.filter((x) => x.id !== story.id))
+                              setDeletingId(story.id)
+                              toast({ title: "Deleting", description: "Deleting story...", variant: "info" })
+
                               try {
-                                setDeletingId(story.id)
-                                toast({ title: "Deleting", description: "Deleting story...", variant: "info" })
                                 const resp = await fetch(`/api/admin/stories/${story.id}`, {
                                   method: "DELETE",
                                   credentials: 'same-origin',
                                 })
 
                                 if (resp.status === 204) {
-                                  // success
-                                  setStories((s) => s.filter((x) => x.id !== story.id))
                                   toast({ title: "Deleted", description: "Story deleted successfully", variant: "success" })
                                   return
                                 }
 
-                                // not 204, try to surface server message
                                 let bodyText = await resp.text()
                                 try {
                                   const parsed = JSON.parse(bodyText)
@@ -386,9 +389,11 @@ export default function StoriesPage() {
                                   // keep raw text
                                 }
                                 console.error(`Failed to delete story (status ${resp.status}):`, bodyText)
+                                setStories(prev)
                                 toast({ title: "Failed to delete", description: `Status ${resp.status}: ${bodyText}`, variant: "error" })
                               } catch (e: any) {
                                 console.error(e)
+                                setStories(prev)
                                 toast({ title: "Error", description: String(e), variant: "error" })
                               } finally {
                                 setDeletingId(null)
@@ -418,19 +423,12 @@ export default function StoriesPage() {
               <div className="space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarFallback>
-                        {selectedStory.author_name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("") || "U"}
-                      </AvatarFallback>
+                      <Avatar className="w-12 h-12">
+                      <AvatarFallback>U</AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">{selectedStory.title}</h3>
-                      <p className="text-muted-foreground">
-                        by {selectedStory.author_name || "Unknown"} ({selectedStory.author_id})
-                      </p>
+                      <p className="text-muted-foreground">by Unknown</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline">{selectedStory.category}</Badge>
                         <span className="text-sm text-muted-foreground">•</span>

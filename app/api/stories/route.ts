@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
       query = query.eq("is_featured", true)
     }
     if (search) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,author_name.ilike.%${search}%`)
+      // author_name removed; search title and content only
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
     }
 
     const { data, error } = await query
@@ -42,19 +43,15 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient()
 
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     const body = await request.json()
+    // We no longer attach author_id on public story creation; server-side
+    // operations that need to record authors should do so explicitly via
+    // admin endpoints with the service role key.
     const { data, error } = await supabase
       .from("stories")
       .insert({
         ...body,
-        author_id: user.id,
       })
       .select()
       .single()

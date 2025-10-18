@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/server"
 
-export const runtime = 'node'
+export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
   try {
-    const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const incomingDebug = req.headers.get('x-admin-debug') === '1'
     const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'stories'
-
-    if (!svcKey) {
-      console.error('[api/admin/uploads] Missing SUPABASE_SERVICE_ROLE_KEY')
-      return NextResponse.json({ error: 'Server not configured for uploads' }, { status: 500 })
-    }
 
     // Expect filename and content-type headers from the client
     const filenameHeader = req.headers.get('x-filename') || `upload-${Date.now()}`
@@ -33,43 +28,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File too large', code: 'FILE_TOO_LARGE', message: msg }, { status: 413 })
     }
 
-    const url = `${base}/storage/v1/object/${BUCKET}/${encodeURIComponent(path)}`
+    // Use admin client (service role) for storage upload
+    const serverSupabase = await createAdminClient()
 
-    const resp = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        apikey: svcKey,
-        Authorization: `Bearer ${svcKey}`,
-        'Content-Type': contentType,
-      },
-      body,
+    // Upload using SDK's storage API (admin client uses service role key)
+    const { error: uploadError } = await serverSupabase.storage.from(BUCKET).upload(path, body, {
+      contentType,
+      upsert: false,
     })
 
-    if (!resp.ok) {
-      const text = await resp.text()
-      console.error('[api/admin/uploads] Supabase storage upload failed', resp.status, text)
-
-      // Try to parse JSON error from Supabase storage
-      let parsed: any = null
-      try {
-        parsed = JSON.parse(text)
-      } catch (e) {
-        parsed = null
-      }
-
-      // Map common Supabase storage errors to friendly structured codes
-      if (parsed && parsed.error && parsed.statusCode) {
-        const statusCode = String(parsed.statusCode)
-        if (statusCode === '415' || parsed.error === 'invalid_mime_type') {
-          return NextResponse.json({ error: 'Invalid file type', code: 'INVALID_MIME', message: String(parsed.message || 'Invalid mime type'), diagnostics: parsed }, { status: 415 })
-        }
-      }
-
-      // Fallback: return raw diagnostics
-      return NextResponse.json({ error: 'Upload failed', code: 'UPLOAD_FAILED', message: String(text || 'Unknown'), diagnostics: { status: resp.status, body: text } }, { status: resp.status })
+    if (uploadError) {
+      console.error('[api/admin/uploads] Supabase storage upload failed', uploadError)
+      const short = { error: 'Upload failed', code: 'UPLOAD_FAILED', message: String(uploadError.message || uploadError) }
+      if (incomingDebug) return NextResponse.json({ ...short, diagnostics: { uploadError } }, { status: 500 })
+      return NextResponse.json(short, { status: 500 })
     }
 
     // public URL for object
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL
     const publicUrl = `${base}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(path)}`
 
     return NextResponse.json({ success: true, publicUrl, message: 'Upload complete' })

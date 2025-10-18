@@ -59,7 +59,7 @@ export default function AdminDashboard() {
         // Recent stories (latest 4)
         const { data: storiesData } = await supabase
           .from("stories")
-          .select("id,title,author_name,created_at,views_count")
+          .select("id,title,author_id,created_at,views_count")
           .order("created_at", { ascending: false })
           .limit(4)
 
@@ -91,7 +91,7 @@ export default function AdminDashboard() {
               id: s.id,
               type: "story_posted",
               message: `New story: ${s.title}`,
-              user: s.author_name || "Unknown",
+              user: s.author_id || "Unknown",
               timestamp: new Date(s.created_at).toLocaleString(),
             }),
           )

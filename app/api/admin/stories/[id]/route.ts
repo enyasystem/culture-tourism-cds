@@ -120,7 +120,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: text }, { status: resp.status })
     }
     console.debug('[api/admin/stories/[id]) DELETE success for id:', id)
-    return NextResponse.json({}, { status: 204 })
+    // 204 responses must not include a body. Use an explicit empty NextResponse.
+    return new NextResponse(null, { status: 204 })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })
   }

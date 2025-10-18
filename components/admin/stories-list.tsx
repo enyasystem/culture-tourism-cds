@@ -28,16 +28,24 @@ export default function StoriesList({ onChange }: { onChange?: () => void }) {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this story?")) return
+
+    // optimistic remove
+    const prev = items
+    setItems((s) => s.filter((it) => it.id !== id))
+    onChange?.()
+
     try {
       const resp = await fetch(`/api/admin/stories/${id}`, { method: "DELETE" })
-      if (resp.ok) {
-        fetchList()
-        onChange?.()
-      } else {
+      if (!resp.ok) {
         const txt = await resp.text()
+        // restore
+        setItems(prev)
+        onChange?.()
         alert("Delete failed: " + txt)
       }
     } catch (e) {
+      setItems(prev)
+      onChange?.()
       alert(String(e))
     }
   }

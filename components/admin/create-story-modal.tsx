@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 
 export default function CreateStoryModal({ onCreated }: { onCreated?: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [newStory, setNewStory] = useState({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+  const [newStory, setNewStory] = useState({ title: "", content: "", excerpt: "", category: "experience" })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -84,6 +84,7 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
         title: newStory.title,
         slug: slugify(newStory.title || "untitled"),
         summary: newStory.excerpt || undefined,
+        // author_name removed; server will resolve author from session (author_id)
         body: newStory.content || undefined,
         published: false,
         cover_image: coverImageUrl,
@@ -91,13 +92,13 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
 
       const resp = await fetch(`/api/admin/stories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-debug": "1" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
       if (resp.status === 201) {
         toast({ title: "Created", description: "Story created", variant: "success" })
         setIsOpen(false)
-        setNewStory({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
+        setNewStory({ title: "", content: "", excerpt: "", category: "experience" })
         setSelectedFile(null)
         if (previewUrl) {
           URL.revokeObjectURL(previewUrl)
@@ -105,22 +106,43 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
         }
         onCreated?.()
       } else {
-        const text = await resp.text()
-        // Surface RLS / server-side errors visibly in the modal upload area so admin users
-        // can see that the failure was due to DB row-level security rather than the image upload.
-        if (text && text.toLowerCase().includes("row-level security")) {
-          const friendly =
-            "Insert rejected by database row-level security. Ensure the server is using the Supabase service role key (SUPABASE_SERVICE_ROLE_KEY) or adjust RLS policies."
-          console.error('Create story failed (RLS)', { status: resp.status, text })
+        // Try to parse a JSON error structure from the server. We intentionally do NOT request
+        // verbose diagnostics from the server to avoid exposing internal blobs to the browser.
+        let json: any = null
+        try {
+          json = await resp.json()
+        } catch (e) {
+          // Fall back to text if JSON parsing fails
+          const txt = await resp.text()
+          console.error('Create story failed (non-json)', { status: resp.status, text: txt })
+          const friendly = txt || `Status ${resp.status}`
           setUploadErrorMessage(friendly)
-          setServerDiagnostics(text)
-          toast({ title: "Failed", description: friendly, variant: "error" })
-        } else {
-          console.error('Create story failed', { status: resp.status, text })
-          setUploadErrorMessage(text || `Status ${resp.status}`)
-          setServerDiagnostics(text)
-          toast({ title: "Failed", description: text, variant: "error" })
+          setServerDiagnostics(null)
+          toast({ title: 'Failed', description: friendly, variant: 'error' })
+          return
         }
+
+        // Prefer a short, user-friendly message. The server will return a concise `error` string
+        // in most cases. Only store diagnostics if the server included a small diagnostics object.
+        let shortMsg = 'An error occurred while creating the story.'
+        if (json?.error) {
+          if (typeof json.error === 'string') shortMsg = json.error
+          else if (json.error?.message) shortMsg = json.error.message
+          else shortMsg = String(json.error)
+        }
+        console.error('Create story failed', { status: resp.status, body: json })
+
+        // If server included diagnostics (should be rare unless server-side debug was requested),
+        // truncate to avoid leaking large blobs to the UI.
+        const diag = json?.diagnostics ? JSON.stringify(json.diagnostics, null, 2) : null
+        const truncate = (s: string | null, n = 600) => {
+          if (!s) return null
+          return s.length > n ? `${s.slice(0, n)}... [truncated]` : s
+        }
+
+        setUploadErrorMessage(shortMsg)
+        setServerDiagnostics(truncate(diag, 800))
+        toast({ title: 'Failed', description: shortMsg, variant: 'error' })
       }
     } catch (err) {
       console.error(err)
@@ -137,16 +159,12 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Story</DialogTitle>
+          <DialogTitle>Add New Story...</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Title</Label>
             <Input value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} />
-          </div>
-          <div>
-            <Label>Author Name</Label>
-            <Input value={newStory.author_name} onChange={(e) => setNewStory({ ...newStory, author_name: e.target.value })} />
           </div>
           <div>
             <Label>Excerpt</Label>
