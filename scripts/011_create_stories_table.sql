@@ -17,3 +17,15 @@ ALTER TABLE stories ENABLE ROW LEVEL SECURITY;
 -- Policy: allow public to view published stories
 CREATE POLICY "public_can_view_published_stories" ON stories
   FOR SELECT USING (published = true);
+
+-- Allow the Supabase service role (server) to INSERT/UPDATE/DELETE regardless of RLS
+-- Supabase service role JWT will have claim: role = "service_role"
+CREATE POLICY "service_role_full_access" ON stories
+  FOR ALL
+  USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
+
+-- Optional: allow authenticated users to INSERT (adjust as needed)
+-- CREATE POLICY "authenticated_can_insert" ON stories
+--   FOR INSERT
+--   WITH CHECK (auth.role() = 'authenticated');

@@ -45,9 +45,25 @@ export default function StoriesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
+  const [serviceRoleExists, setServiceRoleExists] = useState<boolean | null>(null)
 
   useEffect(() => {
     fetchStories()
+    // check server-side service role presence
+    ;(async () => {
+      try {
+        const res = await fetch('/api/admin/service-role-exists')
+        if (res.ok) {
+          const json = await res.json()
+          setServiceRoleExists(Boolean(json.exists))
+        } else {
+          setServiceRoleExists(false)
+        }
+      } catch (e) {
+        console.error('Failed to check service role key', e)
+        setServiceRoleExists(false)
+      }
+    })()
   }, [])
 
   const fetchStories = async () => {
@@ -119,6 +135,11 @@ export default function StoriesPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="p-8">
+        {serviceRoleExists === false && (
+          <div className="mb-4 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900">
+            <strong>Server configuration missing:</strong> SUPABASE_SERVICE_ROLE_KEY is not configured on the server. Admin actions like creating stories with images require the Supabase service role key to bypass database row-level security. Set the env var on your server and restart the app.
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link href="/admin">

@@ -14,6 +14,10 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
   const [newStory, setNewStory] = useState({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+  const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null)
+  const [serverDiagnostics, setServerDiagnostics] = useState<string | null>(null)
   const { toast } = useToast()
   const supabase = createClient()
   const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET ?? "stories"
@@ -32,25 +36,40 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
       let coverImageUrl: string | undefined = undefined
 
       if (selectedFile) {
-        try {
-          setIsUploading(true)
-          // create a unique path for the file
-          const filename = `${Date.now()}-${selectedFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_")}`
-          const path = `stories/${filename}`
+        // reset previous upload errors
+        setUploadErrorMessage(null)
+          try {
+            setIsUploading(true)
+            setUploadProgress(5)
+            // Upload file to server endpoint which uses the service role key
+            const filename = `${selectedFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_")}`
+            const uploadResp = await fetch(`/api/admin/uploads`, {
+              method: "POST",
+              headers: {
+                "Content-Type": selectedFile.type || "application/octet-stream",
+                "x-filename": filename,
+              },
+              body: selectedFile,
+            })
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from(BUCKET)
-            .upload(path, selectedFile, { cacheControl: "3600", upsert: false })
+            if (!uploadResp.ok) {
+              const text = await uploadResp.text()
+              console.error('Image upload failed', { status: uploadResp.status, text })
+              setUploadErrorMessage(text || `Status ${uploadResp.status}`)
+              toast({ title: 'Upload failed', description: text || `Status ${uploadResp.status}`, variant: 'error' })
+              throw new Error(text || `Status ${uploadResp.status}`)
+            }
 
-          if (uploadError) throw uploadError
-
-          // get public URL
-          const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path)
-          // @ts-ignore publicData typing may vary depending on supabase client version
-          coverImageUrl = publicData?.publicUrl || publicData?.public_url || undefined
-        } finally {
-          setIsUploading(false)
-        }
+            const json = await uploadResp.json()
+            coverImageUrl = json.publicUrl
+            setUploadProgress(100)
+          } catch (uploadErr) {
+            console.error("Upload error (caught)", uploadErr)
+            throw uploadErr
+          } finally {
+            setIsUploading(false)
+            setTimeout(() => setUploadProgress(null), 800)
+          }
       }
 
       const payload = {
@@ -64,7 +83,7 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
 
       const resp = await fetch(`/api/admin/stories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-admin-debug": "1" },
         body: JSON.stringify(payload),
       })
       if (resp.status === 201) {
@@ -72,10 +91,28 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
         setIsOpen(false)
         setNewStory({ title: "", content: "", author_name: "", excerpt: "", category: "experience" })
         setSelectedFile(null)
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl)
+          setPreviewUrl(null)
+        }
         onCreated?.()
       } else {
         const text = await resp.text()
-        toast({ title: "Failed", description: text, variant: "error" })
+        // Surface RLS / server-side errors visibly in the modal upload area so admin users
+        // can see that the failure was due to DB row-level security rather than the image upload.
+        if (text && text.toLowerCase().includes("row-level security")) {
+          const friendly =
+            "Insert rejected by database row-level security. Ensure the server is using the Supabase service role key (SUPABASE_SERVICE_ROLE_KEY) or adjust RLS policies."
+          console.error('Create story failed (RLS)', { status: resp.status, text })
+          setUploadErrorMessage(friendly)
+          setServerDiagnostics(text)
+          toast({ title: "Failed", description: friendly, variant: "error" })
+        } else {
+          console.error('Create story failed', { status: resp.status, text })
+          setUploadErrorMessage(text || `Status ${resp.status}`)
+          setServerDiagnostics(text)
+          toast({ title: "Failed", description: text, variant: "error" })
+        }
       }
     } catch (err) {
       console.error(err)
@@ -116,9 +153,51 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+              onChange={(e) => {
+                const f = e.target.files ? e.target.files[0] : null
+                setSelectedFile(f)
+                if (previewUrl) {
+                  URL.revokeObjectURL(previewUrl)
+                  setPreviewUrl(null)
+                }
+                if (f) {
+                  try {
+                    const url = URL.createObjectURL(f)
+                    setPreviewUrl(url)
+                  } catch (err) {
+                    console.debug("Failed to create preview URL", err)
+                  }
+                }
+              }}
             />
-            {isUploading && <p className="text-sm text-muted-foreground">Uploading image...</p>}
+
+            {previewUrl && (
+              <div className="mt-2">
+                <img src={previewUrl} alt="preview" className="h-40 w-auto object-cover rounded-md" />
+              </div>
+            )}
+
+            {isUploading && (
+              <div className="mt-2">
+                <p className="text-sm text-muted-foreground">Uploading image...</p>
+                {uploadProgress !== null ? (
+                  <div className="w-full bg-muted rounded-full h-2 mt-2">
+                    <div
+                      className="bg-primary h-2 rounded-full"
+                      style={{ width: `${Math.min(100, Math.max(0, uploadProgress))}%` }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {uploadErrorMessage && (
+              <div className="mt-2">
+                <p className="text-sm text-red-600">Upload error: {uploadErrorMessage}</p>
+                {serverDiagnostics && (
+                  <pre className="text-xs text-muted-foreground mt-2 max-h-40 overflow-auto whitespace-pre-wrap">{serverDiagnostics}</pre>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>

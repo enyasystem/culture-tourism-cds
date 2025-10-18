@@ -46,6 +46,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     console.debug('[api/admin/stories/[id]) PATCH body:', { id, body })
     const parsed = storyUpdateSchema.parse(body)
     const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    try {
+      if (svcKey) {
+        console.debug('[api/admin/stories/[id]) SUPABASE_SERVICE_ROLE_KEY present (masked):', `${svcKey.slice(0,4)}...${svcKey.slice(-4)}`)
+      } else {
+        console.debug('[api/admin/stories/[id]) SUPABASE_SERVICE_ROLE_KEY missing or empty')
+      }
+    } catch (e) {
+      console.debug('[api/admin/stories/[id]) error checking SUPABASE_SERVICE_ROLE_KEY presence', e)
+    }
+    try {
+      if (svcKey) {
+        console.debug('[api/admin/stories/[id]) SUPABASE_SERVICE_ROLE_KEY present (masked):', `${svcKey.slice(0, 4)}...${svcKey.slice(-4)}`)
+      } else {
+        console.debug('[api/admin/stories/[id]) SUPABASE_SERVICE_ROLE_KEY missing or empty')
+      }
+    } catch (e) {
+      console.debug('[api/admin/stories/[id]) error checking SUPABASE_SERVICE_ROLE_KEY presence', e)
+    }
     const base = process.env.NEXT_PUBLIC_SUPABASE_URL
     const paramsObj = new URLSearchParams()
   paramsObj.set('id', `eq.${id}`)
