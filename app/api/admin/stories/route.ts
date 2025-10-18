@@ -35,7 +35,21 @@ export async function GET(req: Request) {
       const respAttempt = await fetch(attemptUrl.toString(), { headers })
       if (respAttempt.ok) {
         const data = await respAttempt.json()
-        return NextResponse.json({ data })
+        // Normalize rows to always include images and tags arrays
+        const normalized = (data || []).map((row: any) => ({
+          ...row,
+          images: Array.isArray(row?.images)
+            ? row.images
+            : row?.images
+            ? [row.images]
+            : row?.cover_image
+            ? [row.cover_image]
+            : row?.image_url
+            ? [row.image_url]
+            : [],
+          tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
+        }))
+        return NextResponse.json({ data: normalized })
       }
 
       const text = await respAttempt.text()
@@ -216,7 +230,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'An unexpected database error occurred. Enable x-admin-debug=1 for more details (server-only).' }, { status: resp.status })
     }
     const created = await resp.json()
-    return NextResponse.json({ data: created[0] }, { status: 201 })
+    const item = created && created[0] ? created[0] : null
+    const normalizedItem = item
+      ? {
+          ...item,
+          images: Array.isArray(item?.images)
+            ? item.images
+            : item?.images
+            ? [item.images]
+            : item?.cover_image
+            ? [item.cover_image]
+            : item?.image_url
+            ? [item.image_url]
+            : [],
+          tags: Array.isArray(item?.tags) ? item.tags : item?.tags ? [item.tags] : [],
+        }
+      : item
+
+    return NextResponse.json({ data: normalizedItem }, { status: 201 })
   } catch (e: any) {
     if (e?.name === "ZodError") {
       return NextResponse.json({ error: e.errors }, { status: 400 })

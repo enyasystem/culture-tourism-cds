@@ -30,7 +30,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const data = await resp.json()
     const item = Array.isArray(data) && data.length ? data[0] : null
     if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 })
-    return NextResponse.json({ data: item })
+
+    const normalized = {
+      ...item,
+      images: Array.isArray(item?.images)
+        ? item.images
+        : item?.images
+        ? [item.images]
+        : item?.cover_image
+        ? [item.cover_image]
+        : item?.image_url
+        ? [item.image_url]
+        : [],
+      tags: Array.isArray(item?.tags) ? item.tags : item?.tags ? [item.tags] : [],
+    }
+    return NextResponse.json({ data: normalized })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })
   }

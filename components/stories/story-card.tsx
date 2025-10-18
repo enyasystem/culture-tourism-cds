@@ -9,27 +9,27 @@ import { useState } from "react"
 
 interface StoryCardProps {
   story: {
-    id: number
+    id: string
     title: string
     content: string
-    images: string[]
-    author: {
-      name: string
-      avatar: string
-      corpsId: string
+    images?: string[]
+    author?: {
+      name?: string
+      avatar?: string
+      corpsId?: string
     }
-    location: string
-    date: string
-    likes: number
-    comments: number
-    tags: string[]
+    location?: string
+    date?: string
+    likes?: number
+    comments?: number
+    tags?: string[]
     isLiked?: boolean
   }
 }
 
 export function StoryCard({ story }: StoryCardProps) {
   const [isLiked, setIsLiked] = useState(story.isLiked || false)
-  const [likesCount, setLikesCount] = useState(story.likes)
+  const [likesCount, setLikesCount] = useState<number>(story.likes || 0)
   const [isBookmarked, setIsBookmarked] = useState(false)
 
   const handleLike = () => {
@@ -49,14 +49,18 @@ export function StoryCard({ story }: StoryCardProps) {
     return date.toLocaleDateString()
   }
 
+  // normalize optional arrays to avoid TS 'possibly undefined' checks in JSX
+  const images = story.images ?? []
+  const tags = story.tags ?? []
+
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 overflow-hidden border-2 hover:border-[#1A7B7B]/20 h-full flex flex-col">
       <CardContent className="p-6 pb-0">
         <div className="flex items-center gap-3 mb-4">
           <Avatar className="w-12 h-12 ring-2 ring-[#1A7B7B]/20">
-            <AvatarImage src={story.author.avatar || "/placeholder.svg"} alt={story.author.name} />
+            <AvatarImage src={story.author?.avatar || "/placeholder.svg"} alt={story.author?.name || 'User'} />
             <AvatarFallback className="bg-[#1A7B7B] text-white">
-              {story.author.name
+              {(story.author?.name || 'U')
                 .split(" ")
                 .map((n) => n[0])
                 .join("")}
@@ -64,19 +68,19 @@ export function StoryCard({ story }: StoryCardProps) {
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-semibold text-foreground">{story.author.name}</h4>
+              <h4 className="font-semibold text-foreground">{story.author?.name || 'Unknown'}</h4>
               <Badge variant="outline" className="text-xs border-[#1A7B7B]/30 text-[#1A7B7B]">
-                {story.author.corpsId}
+                {story.author?.corpsId || ''}
               </Badge>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
-                <span>{story.location}</span>
+                <span>{story.location || ''}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                <span>{formatDate(story.date)}</span>
+                <span>{formatDate(story.date || '')}</span>
               </div>
             </div>
           </div>
@@ -97,12 +101,12 @@ export function StoryCard({ story }: StoryCardProps) {
         </h3>
         <p className="text-muted-foreground mb-4 leading-relaxed line-clamp-3 flex-1">{story.content}</p>
 
-        {story.images.length > 0 && (
+        {images.length > 0 && (
           <div className="mb-4">
-            {story.images.length === 1 ? (
+            {images.length === 1 ? (
               <div className="relative overflow-hidden rounded-xl group/image">
                 <img
-                  src={story.images[0] || "/placeholder.svg"}
+                  src={images[0] || "/placeholder.svg"}
                   alt="Story image"
                   className="w-full h-72 object-cover transition-transform duration-500 group-hover/image:scale-110"
                 />
@@ -110,16 +114,16 @@ export function StoryCard({ story }: StoryCardProps) {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                {story.images.slice(0, 4).map((image, index) => (
+                {images.slice(0, 4).map((image, index) => (
                   <div key={index} className="relative overflow-hidden rounded-lg group/image">
                     <img
                       src={image || "/placeholder.svg"}
                       alt={`Story image ${index + 1}`}
                       className="w-full h-40 object-cover transition-transform duration-500 group-hover/image:scale-110"
                     />
-                    {index === 3 && story.images.length > 4 && (
+                    {index === 3 && images.length > 4 && (
                       <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                        <span className="text-white font-bold text-xl">+{story.images.length - 4}</span>
+                        <span className="text-white font-bold text-xl">+{images.length - 4}</span>
                       </div>
                     )}
                   </div>
@@ -128,10 +132,9 @@ export function StoryCard({ story }: StoryCardProps) {
             )}
           </div>
         )}
-
-        {story.tags.length > 0 && (
+        {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {story.tags.map((tag, index) => (
+            {tags.map((tag, index) => (
               <Badge
                 key={index}
                 variant="outline"

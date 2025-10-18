@@ -267,8 +267,8 @@ export function ContentManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>Story</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Category</TableHead>
+                {/* <TableHead>Author</TableHead> */}
+                {/* <TableHead>Category</TableHead> */}
                 <TableHead>Views</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>

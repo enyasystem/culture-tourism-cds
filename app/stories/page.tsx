@@ -12,102 +12,22 @@ import { NoStoriesFound } from "@/components/ui/empty-states"
 import { StoryCardSkeleton } from "@/components/ui/loading-states"
 import { Search, Plus, TrendingUp, Clock, Sparkles, Heart, Eye } from "lucide-react"
 
-const corpsStories = [
-  {
-    id: 1,
-    title: "My First Visit to Jos Wildlife Park",
-    content:
-      "What an incredible experience! The wildlife park exceeded all my expectations. The rock formations are absolutely stunning, and seeing the animals in their natural habitat was breathtaking. As a corps member from Lagos, I never imagined Jos had such natural beauty. The park rangers were so knowledgeable and shared fascinating stories about the local ecosystem. I spent the entire afternoon there and could have stayed longer. This is definitely a must-visit for any corps member serving in Plateau State!",
-    images: [
-      "/jos-wildlife-park-plateau-state.jpg",
-      "/placeholder.svg?key=wildlife2",
-      "/placeholder.svg?key=wildlife3",
-    ],
-    author: {
-      name: "Adaora Okafor",
-      avatar: "/placeholder.svg?key=avatar1",
-    },
-    location: "Jos Wildlife Park",
-    date: "2025-01-15",
-    likes: 42,
-    comments: 8,
-    tags: ["wildlife", "nature", "firstvisit", "amazing"],
-    isLiked: true,
-  },
-  {
-    id: 2,
-    title: "Cultural Night at the National Museum",
-    content:
-      "Last night's cultural event at the National Museum was absolutely magical! The traditional dancers were incredible, and learning about the history of the Middle Belt region was so enlightening. The museum staff did an amazing job organizing everything. I met so many interesting people and learned about traditions I never knew existed. The artifacts collection is impressive, and the storytelling session about Jos's history gave me chills. Proud to be serving in such a culturally rich state!",
-    images: ["/national-museum-jos-cultural-artifacts.jpg", "/placeholder.svg?key=cultural2"],
-    author: {
-      name: "Ibrahim Musa",
-      avatar: "/placeholder.svg?key=avatar2",
-    },
-    location: "National Museum Jos",
-    date: "2025-01-12",
-    likes: 38,
-    comments: 12,
-    tags: ["culture", "museum", "traditional", "history"],
-    isLiked: false,
-  },
-  {
-    id: 3,
-    title: "Sunrise Hike at Shere Hills",
-    content:
-      "Woke up at 5 AM for this hike and it was SO worth it! The sunrise view from Shere Hills is something every corps member needs to experience. The climb was challenging but manageable, and the panoramic view of Jos from the top is breathtaking. I went with a group of fellow corps members and we had such a great time. The fresh air, the exercise, and the stunning scenery made for a perfect weekend adventure. Already planning my next visit!",
-    images: [
-      "/shere-hills-jos-plateau-landscape.jpg",
-      "/placeholder.svg?key=sunrise2",
-      "/placeholder.svg?key=sunrise3",
-      "/placeholder.svg?key=sunrise4",
-    ],
-    author: {
-      name: "Fatima Abdullahi",
-      avatar: "/placeholder.svg?key=avatar3",
-    },
-    location: "Shere Hills",
-    date: "2025-01-10",
-    likes: 56,
-    comments: 15,
-    tags: ["hiking", "sunrise", "adventure", "weekend"],
-    isLiked: true,
-  },
-  {
-    id: 4,
-    title: "Jos Main Market Cultural Experience",
-    content:
-      "Spent my Saturday morning exploring Jos Main Market and what a cultural immersion it was! The variety of local crafts, traditional fabrics, and handmade items is incredible. I bought some beautiful pottery and traditional jewelry. The vendors were so friendly and patient, teaching me about the significance of different items. The food section was amazing too - tried some local delicacies I'd never heard of before. This market is a treasure trove of Plateau State culture!",
-    images: ["/placeholder.svg?key=market1", "/placeholder.svg?key=market2"],
-    author: {
-      name: "Chioma Eze",
-      avatar: "/placeholder.svg?key=avatar4",
-    },
-    location: "Jos Main Market",
-    date: "2025-01-08",
-    likes: 29,
-    comments: 6,
-    tags: ["market", "crafts", "culture", "shopping"],
-    isLiked: false,
-  },
-  {
-    id: 5,
-    title: "Community Service at Local School",
-    content:
-      "Today our CDS group organized a cultural education program at a local primary school. We taught the children about different Nigerian cultures and they shared stories about Jos traditions. It was so heartwarming to see their enthusiasm and curiosity. We also helped paint some classrooms and donated books. The teachers were so grateful, and the children's smiles made everything worthwhile. This is why I love the NYSC program - the opportunity to give back to communities while learning so much ourselves.",
-    images: ["/placeholder.svg?key=school1"],
-    author: {
-      name: "David Okonkwo",
-      avatar: "/placeholder.svg?key=avatar5",
-    },
-    location: "Government Primary School, Jos",
-    date: "2025-01-05",
-    likes: 67,
-    comments: 18,
-    tags: ["CDS", "community", "education", "service"],
-    isLiked: true,
-  },
-]
+// stories fetched from the database (published only)
+// kept the previous static dataset in repository history for reference
+interface Story {
+  id: string
+  title: string
+  content: string
+  images?: string[]
+  location?: string
+  date?: string
+  likes?: number
+  comments?: number
+  tags?: string[]
+  isLiked?: boolean
+}
+
+const initialStories: Story[] = []
 
 const sortOptions = [
   { value: "recent", label: "Most Recent", icon: Clock },
@@ -128,11 +48,13 @@ const allTags = [
 ]
 
 export default function StoriesPage() {
-  const [filteredStories, setFilteredStories] = useState(corpsStories)
+  const [stories, setStories] = useState<Story[]>(initialStories)
+  const [filteredStories, setFilteredStories] = useState<Story[]>(initialStories)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("recent")
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const heroRef = useRef<HTMLDivElement>(null)
   const storiesRef = useRef<HTMLDivElement>(null)
@@ -170,25 +92,71 @@ export default function StoriesPage() {
     }
   }, [])
 
+  // Fetch published stories from the API on mount
+  useEffect(() => {
+    const controller = new AbortController()
+    let mounted = true
+
+    const load = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/stories', { signal: controller.signal })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '')
+          throw new Error(txt || `Failed to fetch stories: ${res.status}`)
+        }
+        const data: Story[] = await res.json()
+        if (!mounted) return
+        setStories(data)
+        setFilteredStories(data)
+        console.debug('[stories page] fetched stories count:', data?.length, data?.[0])
+      } catch (err: any) {
+        if (err.name === 'AbortError') return
+        console.error('Failed to load stories', err)
+        setError(String(err?.message || err))
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      mounted = false
+      controller.abort()
+    }
+  }, [])
+
+  // Keep filteredStories in sync with the main stories list when
+  // there is no active search query or tag filter. This ensures the
+  // Featured hero (derived from `stories`) and the All Stories list
+  // (derived from `filteredStories`) remain consistent.
+  useEffect(() => {
+    if (!searchQuery && !selectedTag) {
+      setFilteredStories(stories)
+    }
+  }, [stories, searchQuery, selectedTag])
+
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     setIsLoading(true)
 
     setTimeout(() => {
-      let filtered = corpsStories
+      let filtered = stories
 
       if (query) {
-        filtered = filtered.filter(
-          (story) =>
-            story.title.toLowerCase().includes(query.toLowerCase()) ||
-            story.content.toLowerCase().includes(query.toLowerCase()) ||
-            story.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())) ||
-            story.location.toLowerCase().includes(query.toLowerCase()),
-        )
+        const q = query.toLowerCase()
+        filtered = filtered.filter((story: Story) => {
+          const title = story.title?.toLowerCase() || ''
+          const content = story.content?.toLowerCase() || ''
+          const hasTag = (story.tags || []).some((tag: string) => tag.toLowerCase().includes(q))
+          const loc = story.location?.toLowerCase() || ''
+          return title.includes(q) || content.includes(q) || hasTag || loc.includes(q)
+        })
       }
 
       if (selectedTag) {
-        filtered = filtered.filter((story) => story.tags.includes(selectedTag))
+        filtered = filtered.filter((story: Story) => (story.tags || []).includes(selectedTag))
       }
 
       setFilteredStories(filtered)
@@ -199,28 +167,28 @@ export default function StoriesPage() {
   const handleTagFilter = (tag: string) => {
     if (selectedTag === tag) {
       setSelectedTag(null)
-      setFilteredStories(corpsStories)
+      setFilteredStories(stories)
     } else {
       setSelectedTag(tag)
-      const filtered = corpsStories.filter((story) => story.tags.includes(tag))
+      const filtered = stories.filter((story: Story) => (story.tags || []).includes(tag))
       setFilteredStories(filtered)
     }
   }
 
   const handleSort = (option: string) => {
     setSortBy(option)
-    const sorted = [...filteredStories].sort((a, b) => {
+    const sorted = [...filteredStories].sort((a: Story, b: Story) => {
       if (option === "popular") {
-        return b.likes - a.likes
+        return (b.likes || 0) - (a.likes || 0)
       }
-      return new Date(b.date).getTime() - new Date(a.date).getTime()
+      return (new Date(b.date || 0).getTime() || 0) - (new Date(a.date || 0).getTime() || 0)
     })
     setFilteredStories(sorted)
   }
 
-  const totalLikes = corpsStories.reduce((sum, story) => sum + story.likes, 0)
-  const totalComments = corpsStories.reduce((sum, story) => sum + story.comments, 0)
-  const featuredStory = corpsStories[0]
+  const totalLikes = stories.reduce((sum: number, story: Story) => sum + (story.likes || 0), 0)
+  const totalComments = stories.reduce((sum: number, story: Story) => sum + (story.comments || 0), 0)
+  const featuredStory = stories[0]
 
   return (
     <main className="min-h-screen bg-background">
@@ -261,7 +229,7 @@ export default function StoriesPage() {
             {/* Stats */}
             <div className="flex items-center justify-center gap-8 mb-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">{corpsStories.length}</div>
+                <div className="text-3xl font-bold text-white">{stories.length}</div>
                 <div className="text-sm text-white/80">Stories</div>
               </div>
               <div className="w-px h-12 bg-white/30" />
@@ -292,13 +260,13 @@ export default function StoriesPage() {
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="relative h-64 md:h-auto">
-                    <img
-                      src={featuredStory.images[0] || "/placeholder.svg"}
-                      alt={featuredStory.title}
-                      className="w-full h-full object-cover"
-                    />
+                        <img
+                          src={(featuredStory.images && featuredStory.images.length > 0 ? featuredStory.images[0] : "/placeholder.svg")}
+                          alt={featuredStory.title || 'Featured story'}
+                          className="w-full h-full object-cover"
+                        />
                     <div className="absolute top-4 left-4">
-                      <Badge className="bg-[#1A7B7B] text-white">Featured Story</Badge>
+                      <Badge className="bg-[#1A7B7B] text-white">Featured Story...</Badge>
                     </div>
                   </div>
                   <div className="p-8 flex flex-col justify-center">
@@ -369,24 +337,24 @@ export default function StoriesPage() {
                 </Badge>
               ))}
               {selectedTag && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTag(null)
-                    setFilteredStories(corpsStories)
-                  }}
-                  className="h-6 text-xs"
-                >
-                  Clear filter
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedTag(null)
+                      setFilteredStories(stories)
+                    }}
+                    className="h-6 text-xs"
+                  >
+                    Clear filter
+                  </Button>
               )}
             </div>
           </div>
 
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-foreground">
-              {selectedTag ? `Stories tagged with #${selectedTag}` : "All Stories"}
+              {selectedTag ? `Stories tagged with #${selectedTag}` : "All Stories..."}
             </h2>
             <div className="text-sm text-muted-foreground bg-muted px-4 py-2 rounded-full">
               {isLoading
@@ -403,6 +371,16 @@ export default function StoriesPage() {
             </div>
           ) : (
             <>
+              {error && (
+                <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-red-900">
+                  Failed to load stories: {error}
+                </div>
+              )}
+              {!error && stories.length === 0 && (
+                <div className="mb-6 p-4 rounded-md bg-amber-50 border border-amber-200 text-amber-900">
+                  No published stories were found. If you expect stories to appear, check that the story rows have status="published" and that `cover_image`/`image_url` fields are populated. Visit the <a href="/admin/stories" className="underline">admin stories</a> page to review.
+                </div>
+              )}
               <div
                 ref={storiesRef}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 transition-all duration-1000 ${
