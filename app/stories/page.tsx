@@ -102,7 +102,7 @@ export default function StoriesPage() {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/stories', { signal: opts?.signal })
+        const res = await fetch('/api/admin/stories', { signal: opts?.signal })
         if (!res.ok) {
           const txt = await res.text().catch(() => '')
           throw new Error(txt || `Failed to fetch stories: ${res.status}`)
@@ -227,6 +227,11 @@ export default function StoriesPage() {
   const totalLikes = stories.reduce((sum: number, story: Story) => sum + (story.likes || 0), 0)
   const totalComments = stories.reduce((sum: number, story: Story) => sum + (story.comments || 0), 0)
   const featuredStory = stories[0]
+
+  // If observer hasn't fired yet, but we already have stories, reveal the
+  // grid so users don't see an empty area. This keeps the animation when
+  // scrolling but avoids the content staying hidden after load.
+  const showStories = isStoriesVisible || filteredStories.length > 0
   // Show a full-page loading state (same as admin) while the initial
   // stories request is in-flight and no stories have been loaded yet.
   if (isLoading && stories.length === 0) {
@@ -438,7 +443,7 @@ export default function StoriesPage() {
               <div
                 ref={storiesRef}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 transition-all duration-1000 ${
-                  isStoriesVisible ? "opacity-100" : "opacity-0"
+                  showStories ? "opacity-100" : "opacity-0"
                 }`}
               >
                 {filteredStories.map((story, index) => (
@@ -446,9 +451,9 @@ export default function StoriesPage() {
                     key={story.id}
                     className="transition-all duration-700"
                     style={{
-                      transitionDelay: isStoriesVisible ? `${index * 100}ms` : "0ms",
-                      opacity: isStoriesVisible ? 1 : 0,
-                      transform: isStoriesVisible ? "translateY(0)" : "translateY(30px)",
+                      transitionDelay: showStories ? `${index * 100}ms` : "0ms",
+                      opacity: showStories ? 1 : 0,
+                      transform: showStories ? "translateY(0)" : "translateY(30px)",
                     }}
                   >
                     <StoryCard story={story} />
