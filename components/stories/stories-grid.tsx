@@ -25,13 +25,16 @@ export function StoriesGrid({ visible }: { visible?: boolean }) {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/admin/stories')
+        // Use the public stories endpoint for client pages to avoid hitting
+        // admin/service-role logic on the server.
+        const res = await fetch('/api/stories')
         if (!res.ok) {
           const txt = await res.text().catch(() => '')
-          throw new Error(txt || `Failed to fetch admin stories: ${res.status}`)
+          throw new Error(txt || `Failed to fetch stories: ${res.status}`)
         }
         const raw = await res.json()
-        const data = Array.isArray(raw?.data) ? raw.data : []
+        // Accept either an array (public endpoint) or { data: [] } (admin-style)
+        const data = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
         if (!mounted) return
         setStories(
           data.map((row: any) => ({

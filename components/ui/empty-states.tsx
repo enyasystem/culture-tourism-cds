@@ -46,7 +46,7 @@ export function NoSitesFound() {
       description="We couldn't find any cultural sites matching your criteria. Try adjusting your filters or search terms."
       action={{
         label: "Clear Filters",
-        onClick: () => window.location.reload(),
+        onClick: () => window.dispatchEvent(new Event('cts:clear-filters')),
       }}
     />
   )
@@ -61,7 +61,7 @@ export function NoEventsFound() {
         Try adjusting your search terms or category filters to find more events.
       </p>
       <div className="flex gap-4 justify-center">
-        <Button onClick={() => window.location.reload()}>Clear Filters</Button>
+        <Button onClick={() => window.dispatchEvent(new Event('cts:clear-filters'))}>Clear Filters</Button>
         <Button variant="outline">
           <Plus className="w-4 h-4 mr-2" />
           Create Event
@@ -80,7 +80,7 @@ export function NoStoriesFound() {
         Try adjusting your search terms or be the first to share a story about this topic.
       </p>
       <div className="flex gap-4 justify-center">
-        <Button onClick={() => window.location.reload()}>Clear Search</Button>
+        <Button onClick={() => window.dispatchEvent(new Event('cts:clear-filters'))}>Clear Search</Button>
         <Button variant="outline">
           <Plus className="w-4 h-4 mr-2" />
           Share Your Story

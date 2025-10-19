@@ -427,46 +427,7 @@ export default function HomePage() {
         </div>
       </section>
 
-       {/* Featured CDS Stories (replaces Featured Upcoming Events) */}
-      <section
-        ref={eventsRef}
-        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
-          eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
-        }`}
-      >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div
-              className={`text-center mb-16 transition-all duration-1000 ${
-                eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-            >
-              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Corps Stories</h2>
-              <div
-                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
-                style={{ width: eventsVisible ? "96px" : "0px" }}
-              ></div>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">Recent stories shared by corps members</p>
-            </div>
-
-            {/* Stories grid will be populated via client fetch of admin stories */}
-            <StoriesGrid visible={eventsVisible} />
-
-            {/* View All Stories Button */}
-            <div
-              className={`text-center mt-12 transition-all duration-800 delay-600 ${
-                eventsVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
-              }`}
-            >
-              <Link href="/stories">
-                <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-2 duration-300">
-                  View All Stories
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* How It Works Section */}
       <section
@@ -555,7 +516,46 @@ export default function HomePage() {
       </section>
 
      
+ {/* Featured CDS Stories (replaces Featured Upcoming Events) */}
+      <section
+        ref={eventsRef}
+        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
+          eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+        }`}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                eventsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Corps Stories</h2>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: eventsVisible ? "96px" : "0px" }}
+              ></div>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">Recent stories shared by corps members</p>
+            </div>
 
+            {/* Stories grid will be populated via client fetch of admin stories */}
+            <StoriesGrid visible={eventsVisible} />
+
+            {/* View All Stories Button */}
+            <div
+              className={`text-center mt-12 transition-all duration-800 delay-600 ${
+                eventsVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
+              }`}
+            >
+              <Link href="/stories">
+                <button className="bg-white border-2 border-[#1A7B7B] text-[#1A7B7B] px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#1A7B7B] hover:text-white transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-2 duration-300">
+                  View All Stories
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
      
 
        {/* Explore by Category Section */}

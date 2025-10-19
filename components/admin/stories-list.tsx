@@ -23,6 +23,12 @@ export default function StoriesList({ onChange }: { onChange?: () => void }) {
   }
 
   useEffect(() => {
+    // Only fetch admin resources when an admin session exists in localStorage.
+    if (typeof window !== "undefined") {
+      const adminSession = localStorage.getItem("admin_session")
+      if (!adminSession || adminSession !== "true") return
+    }
+
     fetchList()
   }, [])
 
