@@ -2,12 +2,57 @@ import { NextResponse } from "next/server"
 import { storyCreateSchema, storyDbSelect } from "@/lib/schemas/stories"
 import { createClient as createServerSupabase } from "@/lib/supabase/server"
 
+// Cache a working select string in-process to avoid repeated expensive
+// retries when the database schema is missing columns. This keeps logs
+// quieter and speeds up subsequent requests.
+let cachedAdminSelect: string | null = null
+
+// Simple in-memory cache for GET results to reduce repeated PostgREST calls
+const adminListCache: { ts: number; body: any } | null = null
+let adminListCacheStore: { ts: number; body: any } | null = null
+const ADMIN_LIST_CACHE_TTL = 1000 * 30 // 30 seconds
+
+// Helper: fetch with timeout
+const fetchWithTimeout = async (url: string, opts: RequestInit = {}, timeout = 2000) => {
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeout)
+  try {
+    const res = await fetch(url, { ...opts, signal: controller.signal })
+    return res
+  } finally {
+    clearTimeout(id)
+  }
+}
+
 // GET list, POST create
 export async function GET(req: Request) {
+  // Ensure requester is authenticated server-side. This prevents unauthenticated
+  // clients (health checks, crawlers) from hitting the admin endpoint and
+  // triggering expensive PostgREST probing logic.
+  try {
+    // Return cached body when fresh
+    if (adminListCacheStore && Date.now() - adminListCacheStore.ts < ADMIN_LIST_CACHE_TTL) {
+      return NextResponse.json(adminListCacheStore.body)
+    }
+    const serverSupabase = await createServerSupabase()
+    const { data: userData } = await serverSupabase.auth.getUser()
+    const user = (userData as any)?.user
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  } catch (sessErr) {
+    // If session resolution fails, treat as unauthorized to be safe.
+    console.debug('[api/admin/stories] could not resolve server session for GET, denying access', sessErr)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   try {
     const restBase = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/stories`
     const url = new URL(restBase)
-    url.searchParams.set("select", storyDbSelect)
+    // Prefer a small, stable core select first to avoid triggering many
+    // PostgREST "column does not exist" errors. If that succeeds, cache
+    // and return it. Otherwise fall back to the iterative column removal
+    // strategy using the full `storyDbSelect`.
+    const coreSelect = `id,title,slug,summary,cover_image,image_url,created_at,updated_at,published,tags`
 
     // Prefer using the service role key for admin server-side reads so RLS
     // doesn't hide non-published rows. Fall back to the anon key if the
@@ -22,20 +67,13 @@ export async function GET(req: Request) {
       Accept: "application/json",
     }
 
-    // Attempt the request and, if Postgres complains about missing columns
-    // (42703 / "does not exist"), iteratively remove those columns from the
-    // select and retry until success or no columns remain.
-    let currentCols = storyDbSelect.split(',').map((s) => s.trim()).filter(Boolean)
-    let attempt = 0
-    const maxAttempts = Math.max(1, currentCols.length)
-    while (attempt < maxAttempts) {
-      const attemptSelect = currentCols.join(',')
-      const attemptUrl = new URL(restBase)
-      attemptUrl.searchParams.set('select', attemptSelect)
-      const respAttempt = await fetch(attemptUrl.toString(), { headers })
-      if (respAttempt.ok) {
-        const data = await respAttempt.json()
-        // Normalize rows to always include images and tags arrays
+    // Fast-path: use cached select if available
+    if (cachedAdminSelect) {
+      const fastUrl = new URL(restBase)
+      fastUrl.searchParams.set('select', cachedAdminSelect)
+      const resp = await fetchWithTimeout(fastUrl.toString(), { headers }, 2000)
+      if (resp.ok) {
+        const data = await resp.json()
         const normalized = (data || []).map((row: any) => ({
           ...row,
           images: Array.isArray(row?.images)
@@ -49,7 +87,74 @@ export async function GET(req: Request) {
             : [],
           tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
         }))
-        return NextResponse.json({ data: normalized })
+        const body = { data: normalized }
+        adminListCacheStore = { ts: Date.now(), body }
+        return NextResponse.json(body)
+      }
+      // If cached select failed, drop cache and continue to probe below
+      cachedAdminSelect = null
+    }
+
+    // Try a small core select first — this minimizes missing-column retries
+    try {
+      const coreUrl = new URL(restBase)
+      coreUrl.searchParams.set('select', coreSelect)
+      const coreResp = await fetchWithTimeout(coreUrl.toString(), { headers }, 2000)
+      if (coreResp.ok) {
+        const coreData = await coreResp.json()
+        cachedAdminSelect = coreSelect
+        const normalized = (coreData || []).map((row: any) => ({
+          ...row,
+          images: Array.isArray(row?.images)
+            ? row.images
+            : row?.images
+            ? [row.images]
+            : row?.cover_image
+            ? [row.cover_image]
+            : row?.image_url
+            ? [row.image_url]
+            : [],
+          tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
+        }))
+        const body = { data: normalized }
+        adminListCacheStore = { ts: Date.now(), body }
+        return NextResponse.json(body)
+      }
+    } catch (e) {
+      // fall through to iterative strategy below
+    }
+
+    // Fallback: attempt the previous iterative column-removal strategy using
+    // the full `storyDbSelect` list. This handles older schemas but is
+    // expensive; kept as a last resort.
+    let currentCols = storyDbSelect.split(',').map((s) => s.trim()).filter(Boolean)
+    let attempt = 0
+    const maxAttempts = Math.max(1, currentCols.length)
+    while (attempt < maxAttempts) {
+      const attemptSelect = currentCols.join(',')
+      const attemptUrl = new URL(restBase)
+      attemptUrl.searchParams.set('select', attemptSelect)
+      const respAttempt = await fetchWithTimeout(attemptUrl.toString(), { headers }, 2000)
+      if (respAttempt.ok) {
+        const data = await respAttempt.json()
+        // Cache the successful select so subsequent requests are fast
+        cachedAdminSelect = attemptSelect
+        const normalized = (data || []).map((row: any) => ({
+          ...row,
+          images: Array.isArray(row?.images)
+            ? row.images
+            : row?.images
+            ? [row.images]
+            : row?.cover_image
+            ? [row.cover_image]
+            : row?.image_url
+            ? [row.image_url]
+            : [],
+          tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
+        }))
+        const body = { data: normalized }
+        adminListCacheStore = { ts: Date.now(), body }
+        return NextResponse.json(body)
       }
 
       const text = await respAttempt.text()

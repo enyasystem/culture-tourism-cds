@@ -52,6 +52,15 @@ export default function StoriesPage() {
   // author/profile resolution removed
 
   useEffect(() => {
+    // Avoid calling admin APIs when not logged in as admin in the browser.
+    if (typeof window !== "undefined") {
+      const adminSession = localStorage.getItem("admin_session")
+      if (!adminSession || adminSession !== "true") {
+        setLoading(false)
+        return
+      }
+    }
+
     fetchStories()
   }, [])
 

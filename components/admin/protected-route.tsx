@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 interface ProtectedRouteProps {
@@ -15,6 +15,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,8 +29,20 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       console.log("[v0] Admin username:", adminUsername)
       console.log("[v0] Login time:", loginTime)
 
+      // If we're on the login page, allow it to render so users can sign in.
       if (!adminSession || adminSession !== "true" || !adminUsername) {
-        console.log("[v0] ✗ No valid admin session found, redirecting to login")
+        console.log("[v0] ✗ No valid admin session found")
+
+        // If the current path is the login page, stop loading and allow the
+        // login UI to render. Otherwise redirect to the login page.
+        if (pathname && pathname.startsWith("/admin/login")) {
+          setIsLoading(false)
+          return
+        }
+
+        // Not on login page: navigate to login and clear loading so the
+        // UI doesn't remain stuck in the verifying state.
+        setIsLoading(false)
         router.push("/admin/login")
         return
       }

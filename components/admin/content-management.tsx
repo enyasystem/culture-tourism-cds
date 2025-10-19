@@ -48,6 +48,17 @@ export function ContentManagement() {
   const { toast } = useToast()
 
   useEffect(() => {
+    // Don't attempt to fetch admin APIs when there is no local admin session.
+    // This prevents anonymous visitors (or background tabs) from triggering
+    // repeated 401 requests on the server.
+    if (typeof window !== "undefined") {
+      const adminSession = localStorage.getItem("admin_session")
+      if (!adminSession || adminSession !== "true") {
+        setLoading(false)
+        return
+      }
+    }
+
     fetchStories()
   }, [])
 

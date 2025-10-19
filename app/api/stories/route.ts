@@ -1,111 +1,97 @@
 import { createClient } from "@/lib/supabase/server"
+import { storyDbSelect } from "@/lib/schemas/stories"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Public GET-only handler for stories (minimal & robust)
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
-  const { searchParams } = new URL(request.url)
 
-  const category = searchParams.get("category")
-  const state = searchParams.get("state")
-  const featured = searchParams.get("featured")
-  const search = searchParams.get("search")
+  const url = new URL(request.url)
+  const category = url.searchParams.get("category")
+  const state = url.searchParams.get("state")
+  const featured = url.searchParams.get("featured")
+  const search = url.searchParams.get("search")
 
   try {
-    // Build base query (we'll try with the status filter first, but if the
-    // `status` column doesn't exist in the DB we'll retry without it so the
-    // site can still render rows).
-    const buildQuery = (includeStatus = true) => {
-      let q: any = supabase.from("stories").select("*").order("created_at", { ascending: false })
-      if (includeStatus) q = q.or('status.eq.published,published.eq.true')
-      else q = q.eq('published', true)
-      if (category) q = q.eq("category", category)
-      if (state) q = q.eq("state", state)
-      if (featured === "true") q = q.eq("is_featured", true)
-      if (search) q = q.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
-      return q
+    // Adaptive select: split the configured select into columns we can
+    // iteratively trim if Postgres complains a column is missing.
+    let selectCols = storyDbSelect.split(",").map((s) => s.trim()).filter(Boolean)
+
+    // Ensure minimal required columns exist
+    if (!selectCols.includes("id") || !selectCols.includes("title")) {
+      console.debug("[api/stories] required columns missing from select", selectCols)
+      return NextResponse.json([], { status: 200 })
     }
 
-    // First attempt: query with status filter
-    let { data, error } = await buildQuery(true)
+    let lastError: any = null
+    let rows: any[] = []
 
-    // If Postgres reports a missing column (42703 / "does not exist"), retry
-    // without the status filter to remain resilient to schema differences.
-    if (error) {
-      const msg = String(error.message || '')
-      const isMissingColumn = /does not exist/i.test(msg) || (error.code === '42703')
-      if (isMissingColumn) {
-        console.debug('[api/stories] detected missing column while filtering by status, retrying without status filter')
-        const retry = await buildQuery(false)
-        const { data: retryData, error: retryErr } = await retry
-        if (retryErr) {
-          return NextResponse.json({ error: retryErr.message || String(retryErr) }, { status: 500 })
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const cols = selectCols.join(",")
+      let query: any = supabase.from("stories").select(cols).order("created_at", { ascending: false })
+
+      // apply filters only if those columns are present
+      query = query.eq("published", true)
+      if (category && selectCols.includes("category")) query = query.eq("category", category)
+      if (state && selectCols.includes("state")) query = query.eq("state", state)
+      if (featured === "true" && selectCols.includes("is_featured")) query = query.eq("is_featured", true)
+
+      if (search) {
+        const q = `%${search}%`
+        const searchCols = ["title", "summary", "excerpt", "body"].filter((c) => selectCols.includes(c))
+        if (searchCols.length > 0) {
+          query = query.or(searchCols.map((c) => `${c}.ilike.${q}`).join(","))
         }
-
-        // Normalize rows: ensure images and tags are always arrays
-        const normalized = (retryData || []).map((row: any) => ({
-          ...row,
-          images: Array.isArray(row?.images)
-            ? row.images
-            : row?.images
-            ? [row.images]
-            : row?.cover_image
-            ? [row.cover_image]
-            : row?.image_url
-            ? [row.image_url]
-            : [],
-          tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
-        }))
-
-        return NextResponse.json(normalized)
       }
 
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      const { data, error } = await query
+      if (!error) {
+        rows = data || []
+        lastError = null
+        break
+      }
+
+      lastError = error
+      console.debug("[api/stories] query error", error)
+
+      // If Postgres reports a missing column (42703), remove it and retry
+      if (error?.code === "42703" && typeof error.message === "string") {
+        const m = error.message.match(/column\s+(?:[\w.]+\.)?"?([a-z0-9_]+)"?\s+does not exist/i)
+        const missing = m ? m[1] : null
+        if (missing && selectCols.includes(missing)) {
+          selectCols = selectCols.filter((c) => c !== missing)
+          continue
+        }
+      }
+
+      // otherwise stop retrying
+      break
     }
 
-    // Normalize rows: ensure images and tags are always arrays
-    const normalized = (data || []).map((row: any) => ({
-      ...row,
-      images: Array.isArray(row?.images)
+    if (lastError) {
+      console.debug("[api/stories] final query error, returning empty array", lastError)
+      return NextResponse.json([], { status: 200 })
+    }
+
+    const normalized = (rows || []).map((row: any) => {
+      const id = row?.id != null ? String(row.id) : undefined
+      const images = Array.isArray(row?.images)
         ? row.images
         : row?.images
         ? [row.images]
         : row?.cover_image
         ? [row.cover_image]
-        : row?.image_url
-        ? [row.image_url]
-        : [],
-      tags: Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : [],
-    }))
+        : []
+
+      const tags = Array.isArray(row?.tags) ? row.tags : row?.tags ? [row.tags] : []
+      const content = (row?.summary as string) || (row?.excerpt as string) || (row?.body as string) || ''
+
+      return { ...(row || {}), id, images, tags, content }
+    })
 
     return NextResponse.json(normalized)
-  } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-
-  try {
-
-    const body = await request.json()
-    // We no longer attach author_id on public story creation; server-side
-    // operations that need to record authors should do so explicitly via
-    // admin endpoints with the service role key.
-    const { data, error } = await supabase
-      .from("stories")
-      .insert({
-        ...body,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json(data, { status: 201 })
-  } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  } catch (err) {
+    console.error("[api/stories] unexpected error", err)
+    return NextResponse.json([], { status: 200 })
   }
 }
