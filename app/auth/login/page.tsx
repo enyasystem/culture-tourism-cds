@@ -46,6 +46,28 @@ export default function LoginPage() {
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ event: 'SIGNED_IN', session }),
         })
+        
+        // After syncing the session to the server, call the server-side admin
+        // check endpoint which uses the service role key to reliably determine
+        // whether the authenticated user is an admin.
+        try {
+          const checkResp = await fetch('/api/admin/check')
+          if (checkResp.ok) {
+            const json = await checkResp.json()
+            if (json?.isAdmin) {
+              try {
+                localStorage.setItem('admin_session', 'true')
+                localStorage.setItem('admin_username', email || 'admin')
+                localStorage.setItem('admin_login_time', new Date().toISOString())
+              } catch (e) {}
+              router.push('/admin')
+              router.refresh()
+              return
+            }
+          }
+        } catch (e) {
+          // ignore check errors and fall back to profile query below
+        }
       } catch (e) {
         // ignore - cookie sync is best-effort
       }
@@ -62,6 +84,16 @@ export default function LoginPage() {
             .single()
 
           if (!profileErr && profile?.role === "admin") {
+            try {
+              // ensure client-side admin markers are set so ProtectedRoute and
+              // admin UI don't immediately redirect back to login
+              localStorage.setItem("admin_session", "true")
+              localStorage.setItem("admin_username", email || "admin")
+              localStorage.setItem("admin_login_time", new Date().toISOString())
+            } catch (e) {
+              // ignore storage errors
+            }
+
             router.push("/admin")
             router.refresh()
             return
