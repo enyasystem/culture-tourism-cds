@@ -1,6 +1,4 @@
 "use client"
-
-import { AdminLayout } from "@/components/admin/admin-layout"
 import { StatsCard } from "@/components/admin/stats-card"
 import { ContentManagement } from "@/components/admin/content-management"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -130,98 +128,83 @@ export default function AdminDashboard() {
     fetchSidebar()
   }, [])
   return (
-    <AdminLayout currentPath="/admin">
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Jos Culture & Tourism Platform Admin</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* <Badge variant="secondary" className="gap-1">
-              <TrendingUp className="w-3 h-3" />
-              Platform Growing
-            </Badge> */}
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Content
-            </Button>
-          </div>
+    <div className="p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Jos Culture & Tourism Platform Admin</p>
         </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* <StatsCard
-            title="Total Corps Members"
-            value={loadingCounts ? "..." : String(counts.users)}
-            change=""
-            changeType="positive"
-            icon={Users}
-          /> */}
-          <StatsCard
-            title="Cultural Sites"
-            value={loadingCounts ? "..." : String(counts.sites)}
-            change=""
-            changeType="positive"
-            icon={MapPin}
-          />
-          <StatsCard
-            title="Active Events"
-            value={loadingCounts ? "..." : String(counts.events)}
-            change=""
-            changeType="neutral"
-            icon={Calendar}
-          />
-          <StatsCard
-            title="Stories Shared"
-            value={loadingCounts ? "..." : String(counts.stories)}
-            change=""
-            changeType="neutral"
-            icon={Camera}
-          />
+        <div className="flex items-center gap-4">
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Content
+          </Button>
         </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          {/* Content Management */}
-          <div className="lg:col-span-2">
-            <ContentManagement />
-          </div>
-
-          {/* Sidebar Content */}
-          <div className="space-y-6">
-            {/* Quick Actions (moved to sidebar) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
-                    <MapPin className="w-6 h-6" />
-                    <span className="text-sm">Add Cultural Site</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
-                    <Calendar className="w-6 h-6" />
-                    <span className="text-sm">Create Event</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
-                    <Users className="w-6 h-6" />
-                    <span className="text-sm">Manage Users</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
-                    <BarChart3 className="w-6 h-6" />
-                    <span className="text-sm">View Analytics</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        
       </div>
-    </AdminLayout>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Cultural Sites"
+          value={loadingCounts ? "..." : String(counts.sites)}
+          change=""
+          changeType="positive"
+          icon={MapPin}
+        />
+        <StatsCard
+          title="Active Events"
+          value={loadingCounts ? "..." : String(counts.events)}
+          change=""
+          changeType="neutral"
+          icon={Calendar}
+        />
+        <StatsCard
+          title="Stories Shared"
+          value={loadingCounts ? "..." : String(counts.stories)}
+          change=""
+          changeType="neutral"
+          icon={Camera}
+        />
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-8 mb-8">
+        {/* Content Management */}
+        <div className="lg:col-span-2">
+          <ContentManagement />
+        </div>
+
+        {/* Sidebar Content */}
+        <div className="space-y-6">
+          {/* Quick Actions (moved to sidebar) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+                <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                  <MapPin className="w-6 h-6" />
+                  <span className="text-sm">Add Cultural Site</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                  <Calendar className="w-6 h-6" />
+                  <span className="text-sm">Create Event</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                  <Users className="w-6 h-6" />
+                  <span className="text-sm">Manage Users</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex-col gap-2 bg-transparent justify-center">
+                  <BarChart3 className="w-6 h-6" />
+                  <span className="text-sm">View Analytics</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   )
 }
