@@ -1,30 +1,47 @@
-# Culture Tourism Platform
+# 🌍 Culture & Tourism Platform
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/enyaelvis-projects/v0-culture-tourism-platform)  
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/enyaelvis-projects/v0-culture-tourism-platform)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/3F5QCZvI8fi)
+---
 
-## Overview
+## 🏛️ Overview
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+The **Culture & Tourism Platform** is a digital initiative designed to showcase and promote the rich cultural heritage and tourism attractions of **Jos, Plateau State**.  
+It serves as a hub for visitors and NYSC CDS members to explore historical sites, natural attractions, cultural events, and local experiences.
 
-## Deployment
+---
 
-Your project is live at:
+## 🚀 Live Deployment
 
-**[https://vercel.com/enyaelvis-projects/v0-culture-tourism-platform](https://vercel.com/enyaelvis-projects/v0-culture-tourism-platform)**
+The project is live at:  
+👉 **[culture-tourism-cds-josnorth.vercel.app](https://culture-tourism-cds-josnorth.vercel.app/)**
 
-## Build your app
+Deployment is managed via **Vercel**, providing seamless CI/CD and instant updates from version control.
 
-Continue building your app on:
+---
 
-**[https://v0.app/chat/projects/3F5QCZvI8fi](https://v0.app/chat/projects/3F5QCZvI8fi)**
+## 🧩 Tech Stack
 
-## How It Works
+- **Hosting:** [Vercel](https://vercel.com)
+- **Version Control:** GitHub (auto-synced with v0)
+---
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## 🧠 Development Notes
+
+
+## 💡 Future Improvements
+
+- Add dynamic content for local attractions and festivals  
+- Enable user submissions (stories, photos, experiences)  
+- Integrate Google Maps for location-based discovery  
+- Implement admin moderation for user-generated content  
+
+---
+
+## 👨‍💻 Author
+
+**Enya Elvis**  
+Developer & Maintainer  
+📧 [enyaelvis@gmail.com](mailto:enyaelvis@gmail.com)
+
+---
