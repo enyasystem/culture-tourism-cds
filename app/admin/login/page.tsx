@@ -1,169 +1,146 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Shield, Lock, User, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { createBrowserClient } from "@supabase/ssr"
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
+    setError(null)
     setIsLoading(true)
 
-    const trimmedUsername = username.trim()
-    const trimmedPassword = password.trim()
+    const u = username.trim()
+    const p = password.trim()
 
-    console.log("[v0] ==================== LOGIN ATTEMPT ====================")
-    console.log("[v0] Raw username:", JSON.stringify(username))
-    console.log("[v0] Raw password:", JSON.stringify(password))
-    console.log("[v0] Trimmed username:", JSON.stringify(trimmedUsername))
-    console.log("[v0] Trimmed password:", JSON.stringify(trimmedPassword))
-    console.log("[v0] Username length:", trimmedUsername.length)
-    console.log("[v0] Password length:", trimmedPassword.length)
-    console.log("[v0] Expected username:", JSON.stringify("admin@example.com"))
-    console.log("[v0] Expected password:", JSON.stringify("password"))
-    console.log("[v0] Username match:", trimmedUsername === "admin@example.com")
-    console.log("[v0] Password match:", trimmedPassword === "password")
-    console.log("[v0] Both match:", trimmedUsername === "admin@example.com" && trimmedPassword === "password")
+    // If Supabase env is configured, attempt real auth using Supabase
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (trimmedUsername === "admin@example.com" && trimmedPassword === "password") {
-      console.log("[v0] ✓ Credentials match! Setting session...")
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      try {
+        const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-      // Store admin session
-      localStorage.setItem("admin_session", "true")
-      localStorage.setItem("admin_username", trimmedUsername)
-      localStorage.setItem("admin_login_time", new Date().toISOString())
+        const { data, error } = await supabase.auth.signInWithPassword({ email: u, password: p })
+        if (error) {
+          setError(error.message || "Sign in failed")
+          setIsLoading(false)
+          return
+        }
 
-      console.log("[v0] ✓ Session stored successfully")
-      console.log("[v0] ✓ Redirecting to /admin")
+        // Sync session to server so middleware can read HTTP-only cookies
+        try {
+          const sessionResp = await supabase.auth.getSession()
+          const session = (sessionResp && (sessionResp as any).data?.session) || (data as any)?.session || null
 
-      // Redirect to admin dashboard
-      router.push("/admin")
-    } else {
-      console.log("[v0] ✗ Login failed - Credentials don't match")
-      setError("Invalid username or password. Please try again.")
-      setIsLoading(false)
+          await fetch("/api/auth", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ event: "SIGNED_IN", session }),
+          })
+        } catch (e) {
+          // ignore cookie sync errors - try to continue
+        }
+
+        // mark client-side session and redirect to admin dashboard
+        try {
+          localStorage.setItem("admin_session", "true")
+          localStorage.setItem("admin_username", u)
+          localStorage.setItem("admin_login_time", new Date().toISOString())
+        } catch (err) {
+          // ignore storage errors
+        }
+
+        router.push("/admin")
+        router.refresh()
+        return
+      } catch (err: any) {
+        setError(err?.message || "Sign in failed")
+        setIsLoading(false)
+        return
+      }
     }
-    console.log("[v0] ========================================================")
+
+    // Fallback demo auth (localStorage) when Supabase is not configured
+    if (u === "admin@example.com" && p === "password") {
+      try {
+        localStorage.setItem("admin_session", "true")
+        localStorage.setItem("admin_username", u)
+        localStorage.setItem("admin_login_time", new Date().toISOString())
+      } catch (err) {
+        // ignore storage errors
+      }
+      router.push("/admin")
+      return
+    }
+
+    setError("Invalid username or password")
+    setIsLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A7B7B]/5 via-background to-[#0F766E]/5 flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo and Back Button */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A7B7B] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
-
-        <Card className="border-2 shadow-xl">
-          <CardHeader className="space-y-4 text-center pb-8">
-            <div className="mx-auto w-20 h-20 bg-[#1A7B7B]/10 rounded-full flex items-center justify-center">
-              <Shield className="w-10 h-10 text-[#1A7B7B]" />
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#1A7B7B]/5 via-background to-[#0F766E]/5">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-[#1A7B7B]/10">
+              <Shield className="w-8 h-8 text-[#1A7B7B]" />
             </div>
-            <div>
-              <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-              <CardDescription className="mt-2">Access the Culture & Tourism CDS admin dashboard</CardDescription>
-            </div>
+            <CardTitle>Admin Login</CardTitle>
+            <CardDescription>Access the admin dashboard</CardDescription>
           </CardHeader>
-
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-4">
               {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">
-                  Username
-                </Label>
+              <div>
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Enter admin username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="pl-10 h-11"
-                    required
-                    autoComplete="username"
-                  />
+                  <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10 h-11" required />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
+              <div>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter admin password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 h-11"
-                    required
-                    autoComplete="current-password"
-                  />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-11" required />
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-11 bg-[#1A7B7B] hover:bg-[#0F766E] text-white font-medium transition-all duration-300"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
-                  </div>
-                ) : (
-                  "Sign In to Admin Panel"
-                )}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign In to Admin"}
               </Button>
             </form>
-
-            <div className="mt-6 pt-6 border-t text-center">
-              <p className="text-xs text-muted-foreground">
-                Default credentials: username: <span className="font-mono font-semibold">admin@example.com</span> |
-                password: <span className="font-mono font-semibold">password</span>
-              </p>
-            </div>
           </CardContent>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Protected admin area. Unauthorized access is prohibited.
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A7B7B]">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
         </p>
       </div>
     </div>
   )
 }
+ 

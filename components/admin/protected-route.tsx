@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { createBrowserClient } from "@supabase/ssr"
 import { Loader2 } from "lucide-react"
 
 interface ProtectedRouteProps {
@@ -29,12 +30,41 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       console.log("[v0] Admin username:", adminUsername)
       console.log("[v0] Login time:", loginTime)
 
-      // If we're on the login page, allow it to render so users can sign in.
+      // If we don't have a client-side marker in localStorage, try to
+      // recover by checking the Supabase client session (cookies) before
+      // immediately redirecting. This avoids a race where the server-side
+      // cookies are present but localStorage hasn't been synced yet.
       if (!adminSession || adminSession !== "true" || !adminUsername) {
-        console.log("[v0] ✗ No valid admin session found")
+        console.log("[v0] \u2717 No valid admin session found locally, attempting Supabase client check")
 
-        // If the current path is the login page, stop loading and allow the
-        // login UI to render. Otherwise redirect to the login page.
+        try {
+          const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+          const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            const { data } = await supabase.auth.getUser()
+            const user = (data as any)?.user
+            if (user) {
+              console.log("[v0] \u2713 Supabase client reports authenticated user:", user?.email || user?.id)
+              try {
+                // Sync a minimal client-side marker so other admin-only
+                // components won't redirect while we allow access.
+                localStorage.setItem("admin_session", "true")
+                localStorage.setItem("admin_username", user.email || "admin")
+                localStorage.setItem("admin_login_time", new Date().toISOString())
+              } catch (e) {
+                // ignore storage errors
+              }
+              setIsAuthorized(true)
+              setIsLoading(false)
+              return
+            }
+          }
+        } catch (e) {
+          console.error("[v0] Supabase client check failed:", e)
+        }
+
+        // If we're on the login page, allow it to render so users can sign in.
         if (pathname && pathname.startsWith("/admin/login")) {
           setIsLoading(false)
           return
