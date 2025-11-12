@@ -211,7 +211,7 @@ export function ContentManagement() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
         <div>
           <h3 className="text-lg font-semibold">CDS Stories Management</h3>
           <p className="text-sm text-muted-foreground">Manage stories submitted by corps members</p>
@@ -226,7 +226,7 @@ export function ContentManagement() {
       </div>
 
       {/* Stats (compact) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <Card>
           <CardContent className="p-3">
             <div className="text-xl font-bold text-foreground">{stats.total}</div>
@@ -254,8 +254,8 @@ export function ContentManagement() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-3">
+          <div className="relative flex-1 max-w-md w-full md:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search stories..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
@@ -265,16 +265,66 @@ export function ContentManagement() {
       <Card>
         <CardHeader>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList>
-              <TabsTrigger value="all">All Stories ({stats.total})</TabsTrigger>
-              <TabsTrigger value="published">Published ({stats.published})</TabsTrigger>
-              <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
-              <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
-            </TabsList>
+            {/* container hides overflow so the scroll area doesn't create a page-level scrollbar */}
+            <div className="overflow-hidden w-full min-w-0">
+              {/* make tabs horizontally scrollable on small screens; match CardHeader padding so pills aren't clipped */}
+              <div className="px-6 md:px-0 overflow-x-auto py-2 w-full">
+              <div className="inline-flex items-center w-full">
+                <TabsList className="inline-flex space-x-2 whitespace-nowrap">
+                  <TabsTrigger className="flex-none" value="all">All Stories ({stats.total})</TabsTrigger>
+                  <TabsTrigger className="flex-none" value="published">Published ({stats.published})</TabsTrigger>
+                  {/* <TabsTrigger className="flex-none" value="pending">Pending ({stats.pending})</TabsTrigger>
+                  <TabsTrigger className="flex-none" value="draft">Draft ({stats.draft})</TabsTrigger> */}
+                </TabsList>
+                {/* spacer so last pill can scroll into view */}
+                <div className="w-6 flex-none" />
+              </div>
+            </div>
+            </div>
           </Tabs>
         </CardHeader>
+        {/* Mobile list view: compact cards shown only on small screens */}
+        <div className="md:hidden space-y-3 mb-4">
+          {filteredStories.map((story) => (
+            <Card key={story.id}>
+              <CardContent className="p-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {(story.cover_image || story.image_url) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={story.cover_image || story.image_url || "/placeholder.svg"} alt={story.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="font-medium text-foreground">{story.title}</div>
+                      <div className="text-xs text-muted-foreground">{formatDate(story.created_at)}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground line-clamp-2 mt-1">{(story.excerpt ?? story.summary ?? story.content ?? "")?.toString().slice(0, 120)}</div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline">{story.category}</Badge>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Eye className="w-3 h-3" /> <span>{story.views_count}</span>
+                      </div>
+                      <Badge variant={getStatusColor(story.status)} className="ml-auto">{story.status}</Badge>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedStory(story)}>View</Button>
+                      <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/stories/${story.id}`)}>Edit</Button>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(story)}>Delete</Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Story</TableHead>
@@ -298,7 +348,7 @@ export function ContentManagement() {
                           <Camera className="w-6 h-6 text-muted-foreground" />
                         )}
                       </div>
-                      <div className="max-w-[300px]">
+                      <div className="max-w-[220px] md:max-w-[300px]">
                         <div className="font-medium text-foreground">{story.title}</div>
                         <div className="text-sm text-muted-foreground line-clamp-2">{(() => {
                           const txt = (story.excerpt as any) ?? (story.summary as any) ?? (story.content as any) ?? ""
@@ -374,7 +424,8 @@ export function ContentManagement() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -410,7 +461,7 @@ export function ContentManagement() {
                 <Badge variant={getStatusColor(selectedStory.status)}>{selectedStory.status}</Badge>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-foreground">{selectedStory.views_count}</div>
                   <p className="text-sm text-muted-foreground">Views</p>

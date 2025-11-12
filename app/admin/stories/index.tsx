@@ -196,7 +196,7 @@ export default function StoriesPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search stories..."
+              placeholder="Search stories"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -213,10 +213,10 @@ export default function StoriesPage() {
           <CardHeader>
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
               <TabsList>
-                <TabsTrigger value="all">All Stories ({stats.total})</TabsTrigger>
+                <TabsTrigger value="all">All Stories... ({stats.total})</TabsTrigger>
                 <TabsTrigger value="published">Published ({stats.published})</TabsTrigger>
                 <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
-                <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
+                <TabsTrigger value="draft">Draft... ({stats.draft})</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>

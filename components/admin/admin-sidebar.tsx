@@ -76,7 +76,13 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
               <p className="text-sm text-muted-foreground">Jos Culture Platform</p>
             </div>
           )}
-          <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="ml-auto">
+          {/* collapse toggle - hide on small screens to avoid duplicate mobile controls */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="ml-auto hidden md:inline-flex"
+          >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </Button>
           {/* mobile close */}
