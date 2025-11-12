@@ -34,45 +34,92 @@ export default function LoginPage() {
 
       if (error) throw error
 
-      // After sign in we also POST the session to the server to set HTTP-only cookies
+      // After sign in we POST the session to the server to set HTTP-only cookies.
+      // Some Supabase client versions may set the session slightly asynchronously,
+      // so poll briefly for the session before syncing to the server.
       try {
-        // data.session may be undefined depending on supabase version; get the latest session
         const { data: userData } = await supabase.auth.getUser()
-        const sessionResp = await supabase.auth.getSession()
-        const session = (sessionResp && (sessionResp as any).data?.session) || (data as any)?.session || null
 
+        // Poll for session up to ~2s total (8 attempts x 250ms)
+        let session: any = null
+        for (let i = 0; i < 8; i++) {
+          const sessionResp = await supabase.auth.getSession()
+          session = (sessionResp && (sessionResp as any).data?.session) || (data as any)?.session || null
+          if (session) break
+          // small delay
+          await new Promise((res) => setTimeout(res, 250))
+        }
+
+        // Post whatever session we have (may be null) - server will set/clear cookies accordingly
         await fetch('/api/auth', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ event: 'SIGNED_IN', session }),
+          body: JSON.stringify({ event: session ? 'SIGNED_IN' : 'INITIAL_SESSION', session }),
         })
       } catch (e) {
         // ignore - cookie sync is best-effort
       }
 
-      // After sign-in, fetch the authenticated user and their profile role.
+      // After sign-in, fetch the authenticated user and determine role via
+      // a server-side lookup that uses the service role key (avoids RLS issues
+      // and ensures middleware sees the correct cookie state). Then redirect
+      // accordingly.
       const { data: userData, error: getUserError } = await supabase.auth.getUser()
       if (!getUserError && userData?.user?.id) {
         const userId = userData.user.id
         try {
-          const { data: profile, error: profileErr } = await supabase
-            .from("user_profiles")
-            .select("role")
-            .eq("user_id", userId)
-            .single()
+          const roleResp = await fetch("/api/user-role", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ userId }),
+          })
 
-          if (!profileErr && profile?.role === "admin") {
-            router.push("/admin")
-            router.refresh()
-            return
+          if (roleResp.ok) {
+            const roleJson = await roleResp.json()
+            if (roleJson?.role === "admin") {
+              await router.replace("/admin")
+              router.refresh()
+              return
+            }
+          } else {
+            // If server-side lookup failed (e.g. no service role key in dev),
+            // fall back to a client-side role lookup which should work for the
+            // signed-in user (RLS permitting). This helps local dev where
+            // SUPABASE_SERVICE_ROLE_KEY is not set.
+            const { data: profile, error: profileErr } = await supabase
+              .from("user_profiles")
+              .select("role")
+              .eq("user_id", userId)
+              .single()
+
+            if (!profileErr && profile?.role === "admin") {
+              await router.replace("/admin")
+              router.refresh()
+              return
+            }
           }
-        } catch {
-          // ignore and fall back to home
+        } catch (e) {
+          // If anything goes wrong, try the client-side lookup as a last resort
+          try {
+            const { data: profile, error: profileErr } = await supabase
+              .from("user_profiles")
+              .select("role")
+              .eq("user_id", userId)
+              .single()
+
+            if (!profileErr && profile?.role === "admin") {
+              await router.replace("/admin")
+              router.refresh()
+              return
+            }
+          } catch {
+            // ignore
+          }
         }
       }
 
       // default redirect
-      router.push("/")
+      await router.replace("/")
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Users, MapPin, Calendar, Camera, TrendingUp, Eye, Heart, MessageCircle, BarChart3, Plus } from "lucide-react"
+import CreateStoryModal from '@/components/admin/create-story-modal'
 import { useEffect, useState } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 
@@ -136,10 +137,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Jos Culture & Tourism Platform Admin</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Content
-          </Button>
+          <CreateStoryModal onCreated={() => { /* refresh sidebar counts if needed */ }} />
         </div>
       </div>
 
@@ -168,17 +166,17 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-8 mb-8">
+      {/* Main Content (single column now so dashboard items can be full width) */}
+      <div className="grid grid-cols-1 gap-8 mb-8">
         {/* Content Management */}
-        <div className="lg:col-span-2">
+        <div>
           <ContentManagement />
         </div>
 
-        {/* Sidebar Content */}
+        {/* Sidebar Content moved below on all sizes (previously was a right column) */}
         <div className="space-y-6">
           {/* Quick Actions (moved to sidebar) */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
@@ -202,7 +200,7 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>

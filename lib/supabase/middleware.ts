@@ -61,45 +61,43 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Query user_profiles using the service role key via the REST API to avoid
-    // RLS/policy recursion issues (the policy previously selected from the same
-    // table which caused infinite recursion). This is safe server-side.
-    let profile = null
+    // To avoid relying on environment variables inside the middleware runtime
+    // (which may not expose private envs in some runtimes), call the internal
+    // server endpoint `/api/user-role` which performs the service-role lookup
+    // server-side. This keeps secrets server-only and prevents 401s like
+    // "No API key found in request" that occur when the middleware cannot read
+    // the service key.
     try {
-      const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      const restUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${user.id}&select=role`
-      const resp = await fetch(restUrl, {
-        headers: {
-          apikey: svcKey || "",
-          Authorization: `Bearer ${svcKey || ""}`,
-          Accept: "application/json",
-        },
+      const url = new URL('/api/user-role', request.url)
+      const resp = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
       })
 
       if (!resp.ok) {
         const text = await resp.text()
         console.debug('[supabase-middleware] service role user_profiles fetch failed', resp.status, text)
-        const url = request.nextUrl.clone()
-        url.pathname = "/unauthorized"
-        return NextResponse.redirect(url)
+        const redirectUrl = request.nextUrl.clone()
+        redirectUrl.pathname = '/unauthorized'
+        return NextResponse.redirect(redirectUrl)
       }
 
-      const svcData = await resp.json()
-      // svcData is an array; pick first
-      profile = Array.isArray(svcData) && svcData.length ? svcData[0] : null
-      console.debug('[supabase-middleware] service-role user_profiles ->', profile)
-    } catch (e) {
-      console.debug('[supabase-middleware] service-role user_profiles fetch error', e)
-      const url = request.nextUrl.clone()
-      url.pathname = "/unauthorized"
-      return NextResponse.redirect(url)
-    }
+      const json = await resp.json()
+      const role = json?.role ?? null
+      console.debug('[supabase-middleware] service-role user_profiles ->', role)
 
-    if (!profile || profile.role !== "admin") {
-      console.debug('[supabase-middleware] user is not admin (via service-role check), redirecting to /unauthorized')
-      const url = request.nextUrl.clone()
-      url.pathname = "/unauthorized"
-      return NextResponse.redirect(url)
+      if (!role || role !== 'admin') {
+        console.debug('[supabase-middleware] user is not admin (via service-role check), redirecting to /unauthorized')
+        const redirectUrl = request.nextUrl.clone()
+        redirectUrl.pathname = '/unauthorized'
+        return NextResponse.redirect(redirectUrl)
+      }
+    } catch (e) {
+      console.debug('[supabase-middleware] service-role user_profiles fetch error', String(e))
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/unauthorized'
+      return NextResponse.redirect(redirectUrl)
     }
   }
 
