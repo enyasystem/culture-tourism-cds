@@ -505,11 +505,11 @@ export default function HomePage() {
                 howItWorksVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
               }`}
             >
-              <Link href="/auth/signup">
+              {/* <Link href="/auth/signup">
                 <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105">
                   Get Started Today
                 </button>
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
