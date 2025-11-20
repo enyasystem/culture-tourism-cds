@@ -39,6 +39,7 @@ export function Navigation() {
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-gray-200 rounded-[35px] shadow-sm w-full max-w-3xl">
       <div className="px-6">
         <div className="flex items-center justify-between h-16">
+          <meta name="google-site-verification" content="N-c6GKMxJNUO8ClrwFBMb5p1dutz7mRTcpVVGp6_b2s" />
           {/* left: logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="relative w-8 h-8">
