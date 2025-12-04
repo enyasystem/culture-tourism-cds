@@ -16,11 +16,13 @@ export default function HomePage() {
 
   const aboutRef = useRef<HTMLElement>(null)
   const howItWorksRef = useRef<HTMLElement>(null)
+  const tribesRef = useRef<HTMLElement>(null)
   const categoriesRef = useRef<HTMLElement>(null)
   const eventsRef = useRef<HTMLElement>(null)
 
   const [aboutVisible, setAboutVisible] = useState(false)
   const [howItWorksVisible, setHowItWorksVisible] = useState(false)
+  const [tribesVisible, setTribesVisible] = useState(false)
   const [categoriesVisible, setCategoriesVisible] = useState(false)
   const [eventsVisible, setEventsVisible] = useState(false)
 
@@ -50,6 +52,7 @@ export default function HomePage() {
         if (entry.isIntersecting) {
           if (entry.target === aboutRef.current) setAboutVisible(true)
           if (entry.target === howItWorksRef.current) setHowItWorksVisible(true)
+          if (entry.target === tribesRef.current) setTribesVisible(true)
           if (entry.target === categoriesRef.current) setCategoriesVisible(true)
           if (entry.target === eventsRef.current) setEventsVisible(true)
         }
@@ -60,6 +63,7 @@ export default function HomePage() {
 
     if (aboutRef.current) observer.observe(aboutRef.current)
     if (howItWorksRef.current) observer.observe(howItWorksRef.current)
+    if (tribesRef.current) observer.observe(tribesRef.current)
     if (categoriesRef.current) observer.observe(categoriesRef.current)
     if (eventsRef.current) observer.observe(eventsRef.current)
 
@@ -428,94 +432,6 @@ export default function HomePage() {
       </section>
 
       
-
-      {/* How It Works Section */}
-      <section
-        ref={howItWorksRef}
-        className={`py-20 bg-gradient-to-b from-gray-50 to-white transition-all duration-1200 ease-out ${
-          howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
-        }`}
-      >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div
-              className={`text-center mb-16 transition-all duration-1000 ${
-                howItWorksVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-            >
-              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
-              <div
-                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
-                style={{ width: howItWorksVisible ? "96px" : "0px" }}
-              ></div>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Get started with Culture & Tourism CDS in four simple steps
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-4 gap-8">
-              {[
-                {
-                  icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
-                  title: "Sign Up",
-                  desc: "Create your account and join the Culture & Tourism CDS community",
-                },
-                {
-                  icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
-                  title: "Explore Sites",
-                  desc: "Discover cultural sites, museums, and heritage locations across Jos",
-                },
-                {
-                  icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
-                  title: "Attend Events",
-                  desc: "Participate in cultural events, workshops, and CDS activities",
-                },
-                {
-                  icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
-                  title: "Share Stories",
-                  desc: "Document your experiences and inspire other corps members",
-                },
-              ].map((step, index) => (
-                <div
-                  key={index}
-                  className={`relative transition-all duration-800 ease-out ${
-                    howItWorksVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-20 scale-90"
-                  }`}
-                  style={{ transitionDelay: `${300 + index * 150}ms` }}
-                >
-                  <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 text-center group hover:-translate-y-2">
-                    <div className="w-20 h-20 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
-                      <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
-                      </svg>
-                    </div>
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#1A7B7B] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-all duration-500 group-hover:scale-110">
-                      {index + 1}
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                    <p className="text-gray-600">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA Button */}
-            <div
-              className={`text-center mt-12 transition-all duration-800 delay-900 ${
-                howItWorksVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
-              }`}
-            >
-              {/* <Link href="/auth/signup">
-                <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105">
-                  Get Started Today
-                </button>
-              </Link> */}
-            </div>
-          </div>
-        </div>
-      </section>
-
-     
  {/* Featured CDS Stories (replaces Featured Upcoming Events) */}
       <section
         ref={eventsRef}
@@ -555,7 +471,116 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>        
+
+      {/* Tribes of Plateau Section */}
+      <section
+        ref={tribesRef}
+        className={`py-20 bg-white transition-all duration-1200 ease-out ${
+          tribesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+        }`}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div
+              className={`text-center mb-16 transition-all duration-1000 ${
+                tribesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Tribes of Plateau State</h2>
+              <div
+                className="w-24 h-1 bg-[#1A7B7B] mx-auto mb-6 transition-all duration-700 delay-200"
+                style={{ width: tribesVisible ? "96px" : "0px" }}
+              ></div>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Discover the rich diversity of ethnic groups and their unique cultural heritage
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  name: "Berom",
+                  description: "The Berom people are primarily found in Jos and the surrounding areas. Known for their agricultural practices and traditional governance systems.",
+                  color: "from-[#1A7B7B] to-[#0F766E]",
+                },
+                {
+                  name: "Anaguta",
+                  description: "Indigenous to the Jos Plateau, the Anaguta have a rich cultural heritage centered around farming and traditional rituals.",
+                  color: "from-[#0F766E] to-[#0D5F5F]",
+                },
+                {
+                  name: "Afizere",
+                  description: "The Afizere people maintain distinct cultural practices and are known for their craftsmanship and traditional arts.",
+                  color: "from-[#1A7B7B] to-[#156666]",
+                },
+                {
+                  name: "Irigwe",
+                  description: "Living in the southern part of Plateau State, the Irigwe people have vibrant cultural traditions and communal practices.",
+                  color: "from-[#0D5F5F] to-[#0A4C4C]",
+                },
+                {
+                  name: "Jarawa",
+                  description: "The Jarawa community is known for their unique language, traditional crafts, and strong cultural identity.",
+                  color: "from-[#156666] to-[#1A7B7B]",
+                },
+                {
+                  name: "Tarok",
+                  description: "Found in the Langtang region, the Tarok people have distinctive cultural practices and agricultural traditions.",
+                  color: "from-[#0A4C4C] to-[#0F766E]",
+                },
+              ].map((tribe, index) => (
+                <div
+                  key={index}
+                  className={`group transition-all duration-800 ease-out ${
+                    tribesVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-20 scale-90"
+                  }`}
+                  style={{ transitionDelay: `${200 + index * 100}ms` }}
+                >
+                  <div className={`bg-gradient-to-br ${tribe.color} rounded-3xl p-8 text-white shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col justify-between`}>
+                    <div>
+                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">{tribe.name}</h3>
+                      <p className="text-white/90 text-sm leading-relaxed">{tribe.description}</p>
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-white/20">
+                      <button className="text-white font-semibold flex items-center gap-2 group/btn transition-all duration-300 hover:translate-x-1">
+                        <span>Learn More</span>
+                        <svg className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className={`text-center mt-16 transition-all duration-800 delay-900 ${
+                tribesVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10"
+              }`}
+            >
+              <Link href="/tribes">
+                <button className="bg-[#1A7B7B] text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-[#156666] transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105">
+                  Explore All Tribes
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
+
+   
      
 
        {/* Explore by Category Section */}

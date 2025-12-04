@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Menu, X, MapPin, Calendar, BookOpen } from "lucide-react"
+import { ChevronDown, Menu, X, MapPin, Calendar, BookOpen, Users } from "lucide-react"
 
 export function Navigation() {
   console.log("NAVIGATION COMPONENT RENDERED");
@@ -88,6 +88,18 @@ export function Navigation() {
                       <div className="flex-1">
                         <div className="font-medium text-black mb-1">Cultural Events</div>
                         <div className="text-sm text-gray-600">Join exciting cultural events and CDS activities</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/tribes"
+                      className="flex items-start gap-3 p-4 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                    >
+                      <div className="p-2 bg-teal-50 rounded-lg group-hover:bg-teal-100 transition-colors">
+                        <Users className="w-5 h-5 text-[#1A7B7B]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-black mb-1">Tribes of Plateau</div>
+                        <div className="text-sm text-gray-600">Discover the diverse tribes and ethnic groups</div>
                       </div>
                     </Link>
                     <Link
