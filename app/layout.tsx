@@ -20,8 +20,7 @@ export const metadata: Metadata = {
   title: "Culture & Tourism CDS | Jos, Plateau State",
   description:
     "Empowering NYSC corps members to explore, document, and promote Jos's rich cultural heritage and sustainable tourism in Plateau State",
-  generator: "v0.app",
-  keywords: ["Culture", "Tourism", "CDS", "Jos", "Plateau State", "NYSC", "Cultural Heritage", "Nigeria"],
+  keywords: ["Culture", "Tourism", "CDS", "Jos", "Plateau State", "NYSC", "Cultural Heritage", "Nigeria", "Cultural Sites", "Tourist Attractions", "Heritage Conservation", "Local Traditions", "Arts & Culture", "Sustainable Tourism", "Traditional Crafts", "Museums", "Historical Sites", "Community Tourism", "Cultural Events", "Indigenous Heritage", "Archaeological", "Adventure Tourism"],
   authors: [{ name: "Enya Elvis", url: "https://github.com/enyasystem" }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://culture-tourism-cds.vercel.app"),
   openGraph: {

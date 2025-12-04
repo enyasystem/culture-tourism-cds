@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
 
 type Props = {
   images: string[]
@@ -66,12 +67,14 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
   alt?: string
 }) {
   const [i, setI] = useState(index)
+  const [emblaRef, embla] = useEmblaCarousel({ loop: false })
 
   // Keep parent in sync when internal index changes
   const setIndex = (next: number) => {
     const wrapped = (next + images.length) % images.length
     setI(wrapped)
     onIndexChange(wrapped)
+    if (embla) embla.scrollTo(wrapped)
   }
 
   // keyboard handlers
@@ -85,6 +88,20 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
   }, [i, onClose])
+
+  // sync embla selection with internal index
+  useEffect(() => {
+    if (!embla) return
+    const onSelect = () => {
+      const sel = embla.selectedScrollSnap()
+      setI(sel)
+      onIndexChange(sel)
+    }
+    embla.on('select', onSelect)
+    // jump to initial index when mounted
+    embla.scrollTo(index)
+    return () => embla.off('select', onSelect)
+  }, [embla])
 
   return (
     <div data-lightbox onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
@@ -104,8 +121,18 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
         ‹
       </button>
 
-      <div onClick={(e) => e.stopPropagation()} className="max-w-[90vw] max-h-[90vh]">
-        <Image src={images[i]} alt={alt ?? 'story image'} width={1600} height={1000} className="object-contain max-w-full max-h-[90vh]" />
+      <div onClick={(e) => e.stopPropagation()} className="max-w-[90vw] max-h-[90vh] w-full">
+        <div className="embla w-full">
+          <div ref={emblaRef} className="embla__viewport overflow-hidden">
+            <div className="embla__container flex transition-transform duration-300 ease-in-out">
+              {images.map((src, idx) => (
+                <div key={idx} className="embla__slide flex-shrink-0 w-full flex items-center justify-center">
+                  <Image src={src} alt={alt ?? `image-${idx}`} width={1600} height={1000} className="object-contain max-w-full max-h-[90vh]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <button
