@@ -3,7 +3,8 @@ import { storyDbSelect } from '@/lib/schemas/stories'
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/layout/navigation'
 import { Footer } from '@/components/layout/footer'
-import Image from 'next/image'
+import Link from 'next/link'
+import StoryReaderGallery from '@/components/stories/story-reader-gallery'
 
 export default async function StoryDetailPage({ params }: { params: { id: string } }) {
   const { id } = params
@@ -37,20 +38,30 @@ export default async function StoryDetailPage({ params }: { params: { id: string
       <main className="min-h-screen bg-background">
         <Navigation />
 
-        <div className="max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
-          <article className="prose lg:prose-xl">
-            <h1 className="text-4xl font-bold">{story.title}</h1>
-            <div className="text-sm text-muted-foreground">
-              {story.created_at ? new Date(story.created_at).toLocaleString() : ''}
+        <div className="max-w-3xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
+          <article>
+            <div className="mb-6">
+              <Link href="/stories" className="text-sm text-muted-foreground hover:underline">
+                ← Back to stories
+              </Link>
             </div>
 
+            <header className="mb-6">
+              <h1 className="text-4xl font-extrabold leading-tight">{story.title}</h1>
+              <div className="mt-2 text-sm text-muted-foreground">
+                {story.created_at ? new Date(story.created_at).toLocaleString() : ''}
+              </div>
+            </header>
+
             {images.length > 0 && (
-              <div className="mt-6 mb-6">
-                <img src={images[0]} alt={story.title} className="w-full h-72 object-cover rounded-lg" />
+              <div className="mb-6">
+                <StoryReaderGallery images={images} alt={story.title} />
               </div>
             )}
 
-            <div className="mt-6">
+            {story.summary && <p className="text-lg text-slate-700 mb-6">{story.summary}</p>}
+
+            <div className="prose lg:prose-xl max-w-none">
               <div dangerouslySetInnerHTML={{ __html: content }} />
             </div>
           </article>
