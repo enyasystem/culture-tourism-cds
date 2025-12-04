@@ -418,7 +418,7 @@ export default function HomePage() {
                     aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                   }`}
                 >
-                  <p className="text-4xl font-bold mb-2">500+</p>
+                  <p className="text-4xl font-bold mb-2">100+</p>
                   <p className="text-lg">Active Corps Members</p>
                 </div>
               </div>

@@ -28,23 +28,22 @@ export default function StoryReaderGallery({ images, alt }: Props) {
           className="w-full h-72 sm:h-96 object-cover"
         />
       </div>
-
-      {images.length > 1 && (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-          {images.map((src, i) => (
-            <button
-              key={i}
-              onClick={() => { setIndex(i); setOpen(true) }}
-              className={`flex-shrink-0 rounded-md overflow-hidden transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                i === index ? 'ring-2 ring-teal-600' : 'ring-1 ring-transparent'
-              }`}
-              aria-label={`Show image ${i + 1}`}
-            >
-              <Image src={src} alt={`thumb-${i}`} width={240} height={140} className="w-36 h-20 object-cover" />
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Caption and indicators */}
+      <div className="mt-3 flex flex-col items-center gap-2">
+        <div className="text-sm text-muted-foreground">{alt ? alt : `Image ${index + 1} of ${images.length}`}</div>
+        {images.length > 1 && (
+          <div className="flex items-center gap-2 mt-1">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { setIndex(i); setOpen(true) }}
+                aria-label={`Select image ${i + 1}`}
+                className={`w-2 h-2 rounded-full transition-all ${i === index ? 'bg-primary' : 'bg-muted'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {open && (
         <Lightbox
@@ -69,12 +68,14 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
   const [i, setI] = useState(index)
   const [emblaRef, embla] = useEmblaCarousel({ loop: false })
 
-  // Keep parent in sync when internal index changes
-  const setIndex = (next: number) => {
+  // Handle index changes and sync with embla
+  const handleSetIndex = (next: number) => {
     const wrapped = (next + images.length) % images.length
     setI(wrapped)
     onIndexChange(wrapped)
-    if (embla) embla.scrollTo(wrapped)
+    if (embla) {
+      embla.scrollTo(wrapped, false)
+    }
   }
 
   // keyboard handlers
@@ -82,12 +83,12 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
     if (typeof window === 'undefined') return
     const handle = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft') setIndex(i - 1)
-      if (e.key === 'ArrowRight') setIndex(i + 1)
+      if (e.key === 'ArrowLeft') handleSetIndex(i - 1)
+      if (e.key === 'ArrowRight') handleSetIndex(i + 1)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [i, onClose])
+  }, [i, onClose, images.length])
 
   // sync embla selection with internal index
   useEffect(() => {
@@ -99,23 +100,25 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
     }
     embla.on('select', onSelect)
     // jump to initial index when mounted
-    embla.scrollTo(index)
-    return () => embla.off('select', onSelect)
-  }, [embla])
+    embla.scrollTo(index, false)
+    return () => {
+      embla.off('select', onSelect)
+    }
+  }, [embla, index, onIndexChange])
 
   return (
     <div data-lightbox onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <button
-        className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60"
-        onClick={onClose}
+        className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
+        onClick={(e) => { e.stopPropagation(); onClose() }}
         aria-label="Close"
       >
         ✕
       </button>
 
       <button
-        className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60"
-        onClick={() => setIndex(i - 1)}
+        className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
+        onClick={(e) => { e.stopPropagation(); handleSetIndex(i - 1) }}
         aria-label="Previous"
       >
         ‹
@@ -136,8 +139,8 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
       </div>
 
       <button
-        className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60"
-        onClick={() => setIndex(i + 1)}
+        className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
+        onClick={(e) => { e.stopPropagation(); handleSetIndex(i + 1) }}
         aria-label="Next"
       >
         ›

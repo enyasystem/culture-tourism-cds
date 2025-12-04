@@ -302,3 +302,46 @@
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+/* Long-form typography improvements */
+/* Responsive prose scale so long-form text reads better on all devices */
+.prose {
+  font-size: clamp(1rem, 1vw + 0.2rem, 1.0625rem);
+  line-height: 1.7;
+}
+
+/* Drop cap for the first paragraph of an article */
+.prose p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.6rem;
+  line-height: 1;
+  padding-right: 0.5rem;
+  padding-top: 0.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-sans);
+}
+
+/* More readable blockquote appearance */
+.prose blockquote {
+  border-left: 4px solid var(--primary-300);
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+  background: transparent;
+  font-style: italic;
+}
+
+/* Small caption below images inside prose */
+.prose figcaption {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Make headings scale nicely on small screens */
+.prose h1 { font-size: clamp(1.6rem, 2.8vw, 2.25rem); }
+.prose h2 { font-size: clamp(1.4rem, 2.2vw, 1.75rem); }
+.prose h3 { font-size: clamp(1.25rem, 1.8vw, 1.25rem); }
