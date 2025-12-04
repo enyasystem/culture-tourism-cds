@@ -41,6 +41,7 @@ export function StoriesGrid({ visible }: { visible?: boolean }) {
             id: row.id,
             title: row.title,
             content: row.summary || row.excerpt || row.body || row.content || '',
+            cover_image: row.cover_image,
             images: Array.isArray(row.images) ? row.images : row.images ? [row.images] : row.cover_image ? [row.cover_image] : row.image_url ? [row.image_url] : [],
             excerpt: row.summary || row.excerpt || null,
           }))
@@ -83,7 +84,7 @@ export function StoriesGrid({ visible }: { visible?: boolean }) {
         <div key={s.id} className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
           <div className="relative h-48 overflow-hidden">
             <img
-              src={(s.images && s.images.length > 0 ? s.images[0] : '/placeholder.svg')}
+              src={(s.cover_image || (s.images && s.images.length > 0 ? s.images[0] : '/placeholder.svg'))}
               alt={s.title}
               className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
             />
