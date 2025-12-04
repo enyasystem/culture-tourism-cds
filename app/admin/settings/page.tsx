@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,11 +14,32 @@ import { Settings, Bell, Shield, Database, Mail, Globe, Users, Palette } from "l
 import { useToast } from '@/components/ui/toast'
 
 export default function SettingsPage() {
+  const [currentEmail, setCurrentEmail] = useState('')
+  const [newEmail, setNewEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
   const { toast } = useToast()
+
+  // Fetch current user's email on mount
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const resp = await fetch('/api/admin/auth/get-user')
+        if (resp.ok) {
+          const data = await resp.json()
+          if (data?.email) {
+            setCurrentEmail(data.email)
+          }
+        }
+      } catch (e) {
+        console.error('failed to fetch user email', e)
+      }
+    }
+    fetchUserEmail()
+  }, [])
 
   const handleChangePassword = async () => {
     if (!newPassword || newPassword.length < 8) {
@@ -52,6 +73,39 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleChangeEmail = async () => {
+    if (!newEmail || !newEmail.includes('@')) {
+      toast({ title: 'Error', description: 'Valid email address is required', variant: 'error' })
+      return
+    }
+
+    try {
+      setEmailLoading(true)
+      const resp = await fetch('/api/admin/auth/change-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEmail }),
+      })
+      const json = await resp.json()
+      if (!resp.ok) {
+        toast({ title: 'Failed', description: json?.error || 'Could not change email', variant: 'error' })
+        return
+      }
+      toast({ title: 'Success', description: 'Email updated successfully', variant: 'success' })
+      setCurrentEmail(newEmail)
+      setNewEmail('')
+    } catch (e) {
+      console.error('change email error', e)
+      toast({ title: 'Error', description: 'Unexpected error', variant: 'error' })
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  const handleResetEmail = () => {
+    setNewEmail('')
   }
 
   return (
@@ -101,11 +155,36 @@ export default function SettingsPage() {
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Security</CardTitle>
+              <CardTitle>Email</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">Change your admin password below.</p>
+                <p className="text-sm text-muted-foreground">Update your admin account email address.</p>
+                <div className="grid grid-cols-1 gap-3 max-w-xl">
+                  <div>
+                    <Label htmlFor="current-email">Current Email</Label>
+                    <Input id="current-email" type="email" value={currentEmail} disabled className="bg-muted" />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-email">New Email</Label>
+                    <Input id="new-email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="Enter new email address" />
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <Button variant="outline" onClick={handleResetEmail} disabled={emailLoading}>Reset</Button>
+                    <Button onClick={handleChangeEmail} disabled={emailLoading}>{emailLoading ? 'Saving...' : 'Change Email'}</Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">Change your admin account password.</p>
                 <div className="grid grid-cols-1 gap-3 max-w-xl">
                   <div>
                     <Label htmlFor="current-password">Current Password</Label>
