@@ -66,14 +66,17 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
   }
 
   const SidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gradient-to-b from-card to-background/50">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border/50">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Admin Panel</h2>
-              <p className="text-sm text-muted-foreground">Jos Culture Platform</p>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <h2 className="text-sm font-bold text-foreground">Admin Panel</h2>
+              </div>
+              <p className="text-xs text-muted-foreground">Jos Culture Platform</p>
             </div>
           )}
           {/* collapse toggle - hide on small screens to avoid duplicate mobile controls */}
@@ -81,13 +84,13 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="ml-auto hidden md:inline-flex"
+            className="ml-auto hidden md:inline-flex hover:bg-primary/10"
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </Button>
           {/* mobile close */}
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose} className="ml-2 md:hidden">
+            <Button variant="ghost" size="sm" onClick={onClose} className="ml-2 md:hidden hover:bg-primary/10">
               <ChevronLeft className="w-4 h-4" />
             </Button>
           )}
@@ -95,8 +98,8 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-3 overflow-y-auto">
+        <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = currentPath === item.href
             return (
@@ -104,14 +107,21 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
                 <Link href={item.href} onClick={() => onClose?.()}>
                   <Button
                     variant={isActive ? "default" : "ghost"}
-                    className={`w-full justify-start gap-3 ${isCollapsed ? "px-2" : "px-3"}`}
+                    className={`w-full justify-start gap-3 transition-all ${
+                      isActive
+                        ? "bg-primary text-white hover:bg-primary/90"
+                        : "text-foreground hover:bg-primary/10"
+                    } ${isCollapsed ? "px-2" : "px-3"}`}
                   >
                     <item.icon className="w-4 h-4 flex-shrink-0" />
                     {!isCollapsed && (
                       <>
-                        <span className="flex-1 text-left">{item.label}</span>
+                        <span className="flex-1 text-left text-sm font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge 
+                            variant={isActive ? "secondary" : "outline"}
+                            className={`text-xs ${isActive ? "bg-white/20 text-white" : ""}`}
+                          >
                             {item.badge}
                           </Badge>
                         )}
@@ -126,17 +136,17 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border">
+      <div className="p-3 border-t border-border/50 bg-gradient-to-t from-background/80 to-transparent">
         <Button
           variant="ghost"
-          className={`w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 ${isCollapsed ? "px-2" : "px-3"}`}
+          className={`w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 font-medium ${isCollapsed ? "px-2" : "px-3"}`}
           onClick={() => {
             handleLogout()
             onClose?.()
           }}
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
-          {!isCollapsed && <span>Logout</span>}
+          {!isCollapsed && <span className="text-sm">Logout</span>}
         </Button>
       </div>
     </div>
@@ -145,15 +155,15 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
   return (
     <>
       {/* Desktop / large screens */}
-      <aside className={`hidden md:flex bg-card border-r border-border transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
+      <aside className={`hidden md:flex bg-card border-r border-border/50 transition-all duration-300 flex-col ${isCollapsed ? "w-16" : "w-64"}`}>
         {SidebarContent}
       </aside>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-          <div className="relative bg-card w-64 h-full border-r border-border shadow-lg">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+          <div className="relative bg-card w-64 h-full border-r border-border shadow-xl">
             {SidebarContent}
           </div>
         </div>

@@ -15,7 +15,7 @@ import { Search, MoreHorizontal, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } f
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
-import CreateStoryModal from '@/components/admin/create-story-modal'
+import StoryForm from '@/components/admin/story-form'
 
 interface Story {
   id: string
@@ -44,6 +44,7 @@ export function ContentManagement() {
   const [selectedTab, setSelectedTab] = useState("all")
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showStoryForm, setShowStoryForm] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -221,9 +222,24 @@ export function ContentManagement() {
             <Clock className="w-3 h-3" />
             {stats.pending} Pending
           </Badge>
-          <CreateStoryModal onCreated={() => fetchStories()} />
+          <Button onClick={() => setShowStoryForm(!showStoryForm)} className="gap-2">
+            {showStoryForm ? "Cancel" : "Add Story"}
+          </Button>
         </div>
       </div>
+
+      {/* Story Form */}
+      {showStoryForm && (
+        <div className="mb-6">
+          <StoryForm 
+            onCreated={() => {
+              fetchStories()
+              setShowStoryForm(false)
+            }}
+            onCancel={() => setShowStoryForm(false)}
+          />
+        </div>
+      )}
 
       {/* Stats (compact) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">

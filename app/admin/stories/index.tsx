@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
-import CreateStoryModal from '@/components/admin/create-story-modal'
+import StoryForm from '@/components/admin/story-form'
 import { useRouter } from "next/navigation"
 
 interface Story {
@@ -44,6 +44,7 @@ export default function StoriesPage() {
   const [selectedTab, setSelectedTab] = useState("all")
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showStoryForm, setShowStoryForm] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   // author/profile resolution removed
@@ -160,8 +161,18 @@ export default function StoriesPage() {
             <h1 className="text-3xl font-bold text-foreground">Stories</h1>
             <p className="text-muted-foreground">Manage corps member stories and experiences...</p>
           </div>
-          <CreateStoryModal onCreated={() => fetchStories()} />
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowStoryForm(!showStoryForm)} className="gap-2">
+              {showStoryForm ? "Cancel" : "Add Story"}
+            </Button>
+          </div>
         </div>
+
+        {showStoryForm && (
+          <div className="mb-6">
+            <StoryForm onCreated={() => { fetchStories(); setShowStoryForm(false) }} onCancel={() => setShowStoryForm(false)} />
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
