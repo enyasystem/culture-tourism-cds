@@ -19,7 +19,7 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
   const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null)
   const [serverDiagnostics, setServerDiagnostics] = useState<string | null>(null)
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([])
-  const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(null)
+  const [selectedCoverIndex, setSelectedCoverIndex] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const supabase = createClient()
@@ -52,7 +52,7 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
     setSelectedFiles(arr)
     // reset previous upload state
     setUploadedUrls([])
-    setSelectedCoverUrl(null)
+    setSelectedCoverIndex(null)
     setProgressMap({})
     setUploadErrorMessage(null)
   }
@@ -85,7 +85,7 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
         setProgressMap((p) => ({ ...p, [filename]: 100 }))
       }
       setUploadedUrls(urls)
-      if (!selectedCoverUrl && urls.length > 0) setSelectedCoverUrl(urls[0])
+      if (selectedCoverIndex === null && urls.length > 0) setSelectedCoverIndex(0)
       return urls
     } finally {
       setIsUploading(false)
@@ -121,8 +121,11 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
         published: false,
       }
 
-      if (uploadedUrls.length > 0) payload.images = uploadedUrls
-      if (selectedCoverUrl) payload.cover_image = selectedCoverUrl
+      if (uploadedUrls.length > 0) {
+        payload.images = uploadedUrls
+        const coverIdx = selectedCoverIndex !== null ? selectedCoverIndex : 0
+        if (uploadedUrls[coverIdx]) payload.cover_image = uploadedUrls[coverIdx]
+      }
 
       const resp = await fetch(`/api/admin/stories`, {
         method: "POST",
@@ -135,7 +138,7 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
         setNewStory({ title: "", content: "" })
         setSelectedFiles([])
         setUploadedUrls([])
-        setSelectedCoverUrl(null)
+        setSelectedCoverIndex(null)
         setPreviews([])
         onCreated?.()
         onCancel?.()
@@ -237,11 +240,10 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
                       <input
                         type="radio"
                         name="cover"
-                        checked={selectedCoverUrl === uploadedUrls[idx] || (uploadedUrls.length === 0 && idx === 0 && selectedCoverUrl === null)}
+                        checked={selectedCoverIndex === idx || (uploadedUrls.length === 0 && idx === 0 && selectedCoverIndex === null)}
                         onChange={() => {
-                          // if uploaded URL exists use that, otherwise mark preview index and set after upload
-                          if (uploadedUrls[idx]) setSelectedCoverUrl(uploadedUrls[idx])
-                          else setSelectedCoverUrl(previews[idx])
+                          // track the selected index; when uploads complete we'll use the uploadedUrls[index]
+                          setSelectedCoverIndex(idx)
                         }}
                       />
                       <span className="ml-1">Cover</span>

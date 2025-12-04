@@ -23,7 +23,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const storyUrl = `${baseUrl}/stories/${id}`
-    const imageUrl = data.cover_image ? `${baseUrl}${data.cover_image}` : `${baseUrl}/og-image.jpg`
+    // If cover_image is an absolute URL (e.g. Supabase storage public URL), use it as-is.
+    const imageUrl = data.cover_image
+      ? /^https?:\/\//i.test(data.cover_image)
+        ? data.cover_image
+        : `${baseUrl}${data.cover_image}`
+      : `${baseUrl}/og-image.jpg`
 
     return {
       title: data.title,

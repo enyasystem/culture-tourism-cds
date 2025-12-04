@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart, MessageCircle, Share2, MapPin, Calendar, Bookmark } from "lucide-react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 interface StoryCardProps {
@@ -30,6 +31,7 @@ interface StoryCardProps {
 }
 
 export function StoryCard({ story }: StoryCardProps) {
+  const router = useRouter()
   const [isLiked, setIsLiked] = useState(story.isLiked || false)
   const [likesCount, setLikesCount] = useState<number>(story.likes || 0)
   const [isBookmarked, setIsBookmarked] = useState(false)
@@ -203,9 +205,12 @@ export function StoryCard({ story }: StoryCardProps) {
                 <Share2 className="w-5 h-5 group-hover/share:scale-110 transition-transform" />
               </button>
             </div>
-            <Link href={`/stories/${story.id}`} legacyBehavior>
-              <a className="font-semibold text-[#1A7B7B] hover:bg-[#1A7B7B] hover:text-white transition-all px-4 py-2 rounded-md border border-transparent">Read More</a>
-            </Link>
+              <button
+                onClick={(e) => { e.preventDefault(); router.push(`/stories/${story.id}`) }}
+                className="font-semibold text-[#1A7B7B] hover:bg-[#1A7B7B] hover:text-white transition-all px-4 py-2 rounded-md border border-transparent"
+              >
+                Read More
+              </button>
           </div>
         </CardContent>
       </Link>

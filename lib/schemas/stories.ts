@@ -8,6 +8,7 @@ export const storyCreateSchema = z.object({
   body: z.string().optional(),
   published: z.boolean().optional(),
   cover_image: z.string().optional(),
+  images: z.array(z.string()).optional(),
 })
 
 export const storyUpdateSchema = storyCreateSchema.partial()
