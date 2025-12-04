@@ -72,13 +72,22 @@ export default async function StoryDetailPage({ params }: { params: { id: string
 
     const story: any = data
 
-    const images: string[] = Array.isArray(story.images)
+    // Build images array with cover_image first if it exists
+    let images: string[] = Array.isArray(story.images)
       ? story.images
       : story.images
       ? [story.images]
       : story.cover_image
       ? [story.cover_image]
       : []
+
+    // If cover_image exists and is not already the first image, make it first
+    if (story.cover_image && images.length > 0 && images[0] !== story.cover_image) {
+      // Remove cover_image from array if it exists elsewhere
+      images = images.filter(img => img !== story.cover_image)
+      // Add it to the beginning
+      images.unshift(story.cover_image)
+    }
 
     const content = story.summary || story.excerpt || story.body || ''
 
