@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { storyCreateSchema } from "@/lib/schemas/stories"
 
-export default function StoryEditor({ id }: { id?: string }) {
+export default function StoryEditor({ id, onSaved, onCancel }: { id?: string; onSaved?: () => void; onCancel?: () => void }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<any>({ title: "", slug: "", summary: "", body: "", published: false, cover_image: "" })
@@ -83,7 +83,11 @@ export default function StoryEditor({ id }: { id?: string }) {
           throw new Error(txt)
         }
       }
-      router.push("/admin/stories")
+      if (onSaved) {
+        onSaved()
+      } else {
+        router.push("/admin/stories")
+      }
     } catch (e: any) {
       alert(String(e))
     } finally {
@@ -116,7 +120,7 @@ export default function StoryEditor({ id }: { id?: string }) {
         </label>
         <div className="flex gap-2">
           <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save'}</Button>
-          <Button variant="ghost" onClick={() => router.back()}>Cancel</Button>
+          <Button variant="ghost" onClick={() => (onCancel ? onCancel() : router.back())}>Cancel</Button>
         </div>
       </div>
     </form>

@@ -2,12 +2,15 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import StoryEditor from '@/components/admin/story-editor'
 import { Button } from "@/components/ui/button"
 import { storyDbSelect } from "@/lib/schemas/stories"
 
 export default function StoriesList({ onChange }: { onChange?: () => void }) {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   async function fetchList() {
     setLoading(true)
@@ -68,13 +71,24 @@ export default function StoriesList({ onChange }: { onChange?: () => void }) {
                 <p className="text-sm text-muted-foreground">{it.summary}</p>
               </div>
               <div className="flex gap-2">
-                <Link href={`/admin/stories/${it.id}`}>
-                  <Button size="sm" variant="outline">Edit</Button>
-                </Link>
+                <Button size="sm" variant="outline" onClick={() => setEditingId(it.id)}>Edit</Button>
                 <Button size="sm" variant="destructive" onClick={() => handleDelete(it.id)}>Delete</Button>
               </div>
             </div>
           ))}
+            {/* Edit Story Dialog (inline) */}
+            <Dialog open={!!editingId} onOpenChange={(open) => { if (!open) setEditingId(null) }}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Story</DialogTitle>
+                </DialogHeader>
+                {editingId && (
+                  <div className="py-2">
+                    <StoryEditor id={editingId} onSaved={() => { setEditingId(null); onChange?.(); }} onCancel={() => setEditingId(null)} />
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
         </div>
       )}
     </div>

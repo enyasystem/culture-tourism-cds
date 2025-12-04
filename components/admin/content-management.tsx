@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import StoryEditor from '@/components/admin/story-editor'
 import { Search, MoreHorizontal, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/toast"
@@ -45,6 +46,7 @@ export function ContentManagement() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showStoryForm, setShowStoryForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -328,7 +330,7 @@ export function ContentManagement() {
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={() => setSelectedStory(story)}>View</Button>
-                      <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/stories/${story.id}`)}>Edit</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setEditingId(story.id)}>Edit</Button>
                       <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(story)}>Delete</Button>
                     </div>
                   </div>
@@ -414,7 +416,7 @@ export function ContentManagement() {
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/admin/stories/${story.id}`)}>
+                        <DropdownMenuItem onClick={() => setEditingId(story.id)}>
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
@@ -518,6 +520,26 @@ export function ContentManagement() {
                   <Button onClick={() => selectedStory && handleApprove(selectedStory.id)}>Approve</Button>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      {/* Edit Story Dialog (inline) */}
+      <Dialog open={!!editingId} onOpenChange={(open) => { if (!open) setEditingId(null) }}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Story</DialogTitle>
+          </DialogHeader>
+          {editingId && (
+            <div className="py-2">
+              <StoryEditor
+                id={editingId}
+                onSaved={() => {
+                  setEditingId(null)
+                  fetchStories()
+                }}
+                onCancel={() => setEditingId(null)}
+              />
             </div>
           )}
         </DialogContent>
