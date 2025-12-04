@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  ExternalLink,
 } from "lucide-react"
 import { createBrowserClient } from "@supabase/ssr"
 
@@ -137,6 +138,14 @@ export function AdminSidebar({ currentPath = "/admin", mobileOpen, onClose }: Ad
 
       {/* Footer */}
       <div className="p-3 border-t border-border/50 bg-gradient-to-t from-background/80 to-transparent">
+        <Button
+          variant="outline"
+          className={`w-full justify-start gap-3 text-primary hover:bg-primary/10 font-medium mb-2 ${isCollapsed ? "px-2" : "px-3"}`}
+          onClick={() => window.open('/', '_blank')}
+        >
+          <ExternalLink className="w-4 h-4 flex-shrink-0" />
+          {!isCollapsed && <span className="text-sm">Visit Site</span>}
+        </Button>
         <Button
           variant="ghost"
           className={`w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 font-medium ${isCollapsed ? "px-2" : "px-3"}`}
