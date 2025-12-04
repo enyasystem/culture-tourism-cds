@@ -1,10 +1,58 @@
 import { createClient } from '@/lib/supabase/server'
 import { storyDbSelect } from '@/lib/schemas/stories'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import { Navigation } from '@/components/layout/navigation'
 import { Footer } from '@/components/layout/footer'
 import Link from 'next/link'
 import StoryReaderGallery from '@/components/stories/story-reader-gallery'
+import StoryShareButton from '@/components/stories/story-share-button'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const { id } = params
+  const supabase = await createClient()
+
+  try {
+    const { data } = await supabase
+      .from('stories')
+      .select('title,summary,cover_image,slug')
+      .eq('id', id)
+      .single()
+
+    if (!data) return {}
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const storyUrl = `${baseUrl}/stories/${id}`
+    const imageUrl = data.cover_image ? `${baseUrl}${data.cover_image}` : `${baseUrl}/og-image.jpg`
+
+    return {
+      title: data.title,
+      description: data.summary || 'Read this story on Culture & Tourism',
+      openGraph: {
+        title: data.title,
+        description: data.summary || 'Read this story on Culture & Tourism',
+        url: storyUrl,
+        type: 'article',
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: data.title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: data.title,
+        description: data.summary || 'Read this story',
+        images: [imageUrl],
+      },
+    }
+  } catch (err) {
+    return {}
+  }
+}
 
 export default async function StoryDetailPage({ params }: { params: { id: string } }) {
   const { id } = params
@@ -48,8 +96,11 @@ export default async function StoryDetailPage({ params }: { params: { id: string
 
             <header className="mb-6">
               <h1 className="text-4xl font-extrabold leading-tight">{story.title}</h1>
-              <div className="mt-2 text-sm text-muted-foreground">
-                {story.created_at ? new Date(story.created_at).toLocaleString() : ''}
+              <div className="mt-2 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {story.created_at ? new Date(story.created_at).toLocaleString() : ''}
+                </div>
+                <StoryShareButton title={story.title} url={`/stories/${id}`} />
               </div>
             </header>
 

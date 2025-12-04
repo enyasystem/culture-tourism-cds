@@ -27,4 +27,4 @@ export type StoryUpdate = z.infer<typeof storyUpdateSchema>
 // `category`, `status`, `is_featured`, `views_count`, `tags`, `state`,
 // and `location` are optional in some deployments and caused 42703
 // errors at runtime. Only include the columns we expect to exist.
-export const storyDbSelect = `id,title,slug,summary,body,excerpt,published,created_at,updated_at,cover_image`
+export const storyDbSelect = `id,title,slug,summary,body,excerpt,published,created_at,updated_at,images,cover_image`
