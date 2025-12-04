@@ -15,6 +15,7 @@ interface Story {
   title: string
   content: string
   images?: string[]
+  cover_image?: string | null
   location?: string
   date?: string
   likes?: number
@@ -216,7 +217,7 @@ export function StoriesClient({ initialStories }: { initialStories: Story[] }) {
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="relative h-64 md:h-auto">
                     <img
-                      src={(featuredStory.images && featuredStory.images.length > 0 ? featuredStory.images[0] : "/placeholder.svg")}
+                      src={(featuredStory.cover_image || (featuredStory.images && featuredStory.images.length > 0 ? featuredStory.images[0] : "/placeholder.svg"))}
                       alt={featuredStory.title || 'Featured story'}
                       className="w-full h-full object-cover"
                     />

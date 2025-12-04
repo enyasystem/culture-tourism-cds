@@ -20,6 +20,7 @@ export default async function StoriesPage() {
           id: row.id != null ? String(row.id) : "",
           title: row.title || "",
           content: row.summary || row.excerpt || row.body || "",
+          cover_image: row.cover_image,
           images: Array.isArray(row.images)
             ? row.images
             : row.images

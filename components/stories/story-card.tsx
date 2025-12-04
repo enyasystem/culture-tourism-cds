@@ -14,6 +14,7 @@ interface StoryCardProps {
     title: string
     content: string
     images?: string[]
+    cover_image?: string | null
     author?: {
       name?: string
       avatar?: string
@@ -52,7 +53,14 @@ export function StoryCard({ story }: StoryCardProps) {
   }
 
   // normalize optional arrays to avoid TS 'possibly undefined' checks in JSX
-  const images = story.images ?? []
+  let images = story.images ?? []
+  // If cover_image exists and is not already the first image, make it first
+  if (story.cover_image && images.length > 0 && images[0] !== story.cover_image) {
+    images = images.filter(img => img !== story.cover_image)
+    images.unshift(story.cover_image)
+  } else if (story.cover_image && images.length === 0) {
+    images = [story.cover_image]
+  }
   const tags = story.tags ?? []
 
   // determine if we have author info to show
