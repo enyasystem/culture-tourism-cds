@@ -104,7 +104,7 @@ export default function HomePage() {
     },
   ]
 
-  const slides = [
+  const [slides, setSlides] = useState([
     {
       mainImage: "/shere-hills-jos-plateau-landscape.jpg",
       destinations: featuredDestinations,
@@ -117,7 +117,54 @@ export default function HomePage() {
       mainImage: "/jos-wildlife-park-plateau-state.jpg",
       destinations: featuredDestinations,
     },
-  ]
+  ])
+
+  // Load admin-configured hero images if available
+  // debug: show where hero came from
+  const [heroSource, setHeroSource] = useState<'default' | 'admin' | 'none'>('default')
+
+  const loadHero = async () => {
+    try {
+      const resp = await fetch('/api/admin/settings/hero')
+      if (!resp.ok) return
+      const json = await resp.json()
+      console.debug('[page] /api/admin/settings/hero response', json)
+      if (Array.isArray(json?.hero)) {
+        const mapped = json.hero
+          .map((h: any) => {
+            if (!h) return null
+            // Accept multiple shapes: string (URL), object with `url`, `publicUrl`, `public_url`, `src`, `image`, `path` etc.
+            const url =
+              typeof h === 'string'
+                ? h
+                : h.url ?? h.publicUrl ?? h.public_url ?? h.publicURL ?? h.src ?? h.image ?? h.path ?? null
+            if (!url) return null
+            return { mainImage: url, destinations: featuredDestinations }
+          })
+          .filter(Boolean)
+        console.debug('[page] mapped hero slides', mapped)
+        setSlides(mapped)
+        // treat any returned array (including empty) as authoritative admin config
+        setHeroSource('admin')
+      }
+    } catch (e) {
+      console.error('failed to load hero settings', e)
+    }
+  }
+
+  useEffect(() => {
+    loadHero()
+
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === 'site-hero-updated') {
+        loadHero()
+      }
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
@@ -126,6 +173,9 @@ export default function HomePage() {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
   }
+
+  const hasSlides = slides && slides.length > 0
+  const activeSlide = hasSlides ? slides[currentSlide % slides.length] : null
 
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
@@ -149,6 +199,10 @@ export default function HomePage() {
 
         {/* Content Container */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+          {/* Debug badge: shows whether admin hero is active */}
+          <div className="absolute right-6 top-6 bg-white/80 text-sm text-gray-800 px-3 py-1 rounded-full shadow-md">
+            {heroSource === 'admin' ? 'Hero: Admin' : heroSource === 'default' ? 'Hero: Default' : 'Hero: None'}
+          </div>
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-8rem)]">
             {/* Left Side - Text Content */}
             <div
@@ -217,126 +271,130 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Main Featured Image */}
-              <div
-                className={`relative rounded-3xl overflow-hidden shadow-2xl group transition-all duration-800 delay-700 ${
-                  isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
-                }`}
-              >
-                <img
-                  src={slides[currentSlide].mainImage || "/placeholder.svg"}
-                  alt="Featured Destination"
-                  className="w-full h-[300px] sm:h-[400px] object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                />
-                <button
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:-translate-x-1"
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:translate-x-1"
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Three Destination Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {slides[currentSlide].destinations.map((destination, index) => (
+              {/* Main Featured Image (or placeholder when no admin slides) */}
+              {hasSlides ? (
+                <>
                   <div
-                    key={destination.id}
-                    className={`group perspective-1000 transition-all duration-800 ${
-                      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+                    className={`relative rounded-3xl overflow-hidden shadow-2xl group transition-all duration-800 delay-700 ${
+                      isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
                     }`}
-                    style={{ transitionDelay: `${900 + index * 150}ms` }}
                   >
-                    <div className="relative w-full h-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
-                      {/* Front Face */}
-                      <div className="absolute inset-0 backface-hidden bg-white rounded-3xl overflow-hidden shadow-xl flex flex-col">
-                        <div className="aspect-[4/3] relative overflow-hidden">
-                          <img
-                            src={destination.image || "/placeholder.svg"}
-                            alt={destination.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                        </div>
-                        <div className="p-4 flex flex-col flex-1">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-base">{destination.name}</h3>
-                            <p className="text-sm text-gray-600">{destination.location}</p>
-                          </div>
-                          <div className="flex justify-end mt-3">
-                            <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                              Read More
-                              <svg
-                                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Back Face */}
-                      <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl overflow-hidden shadow-xl flex flex-col p-6 text-white">
-                        <h3 className="font-bold text-lg mb-3">{destination.name}</h3>
-                        <p className="text-sm text-white/90 mb-4 flex-1">{destination.description}</p>
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span>4.8 Rating</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            <span>Open Daily</span>
-                          </div>
-                        </div>
-                        <Link href={`/sites/${destination.id}`} className="w-full">
-                          <button className="w-full bg-white text-[#1A7B7B] py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-all duration-300 hover:scale-105">
-                            Explore Now
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
+                    <img
+                      src={activeSlide?.mainImage || "/placeholder.svg"}
+                      alt="Featured Destination"
+                      className="w-full h-[300px] sm:h-[400px] object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                    <button
+                      onClick={prevSlide}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:-translate-x-1"
+                    >
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={nextSlide}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:translate-x-1"
+                    >
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </div>
-                ))}
-              </div>
 
-              {/* Carousel Indicators */}
-              <div
-                className={`flex justify-center gap-2 pt-4 transition-all duration-800 delay-1200 ${
-                  isVisible ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`h-3 rounded-full transition-all duration-500 hover:scale-110 ${
-                      currentSlide === index ? "bg-white w-8" : "bg-white/50 w-3 hover:bg-white/70"
+                  {/* Three Destination Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {activeSlide?.destinations.map((destination, index) => (
+                      <div
+                        key={destination.id}
+                        className={`group perspective-1000 transition-all duration-800 ${
+                          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+                        }`}
+                        style={{ transitionDelay: `${900 + index * 150}ms` }}
+                      >
+                        <div className="relative w-full h-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                          {/* Front Face */}
+                          <div className="absolute inset-0 backface-hidden bg-white rounded-3xl overflow-hidden shadow-xl flex flex-col">
+                            <div className="aspect-[4/3] relative overflow-hidden">
+                              <img
+                                src={destination.image || "/placeholder.svg"}
+                                alt={destination.name}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                            </div>
+                            <div className="p-4 flex flex-col flex-1">
+                              <div className="flex-1">
+                                <h3 className="font-bold text-gray-900 text-base">{destination.name}</h3>
+                                <p className="text-sm text-gray-600">{destination.location}</p>
+                              </div>
+                              <div className="flex justify-end mt-3">
+                                <button className="flex items-center gap-2 bg-[#1A7B7B] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                                  Read More
+                                  <svg
+                                    className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Back Face */}
+                          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-[#1A7B7B] to-[#0F766E] rounded-3xl overflow-hidden shadow-xl flex flex-col p-6 text-white">
+                            <h3 className="font-bold text-lg mb-3">{destination.name}</h3>
+                            <p className="text-sm text-white/90 mb-4 flex-1">{destination.description}</p>
+                            <div className="space-y-2 mb-4">
+                              <div className="flex items-center gap-2 text-sm">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span>4.8 Rating</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span>Open Daily</span>
+                              </div>
+                            </div>
+                            <Link href={`/sites/${destination.id}`} className="w-full">
+                              <button className="w-full bg-white text-[#1A7B7B] py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-all duration-300 hover:scale-105">
+                                Explore Now
+                              </button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Carousel Indicators */}
+                  <div
+                    className={`flex justify-center gap-2 pt-4 transition-all duration-800 delay-1200 ${
+                      isVisible ? "opacity-100" : "opacity-0"
                     }`}
-                  />
-                ))}
-              </div>
+                  >
+                    {slides.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentSlide(index)}
+                        className={`h-3 rounded-full transition-all duration-500 hover:scale-110 ${
+                          currentSlide === index ? "bg-white w-8" : "bg-white/50 w-3 hover:bg-white/70"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
@@ -412,7 +470,7 @@ export default function HomePage() {
               >
                 <div className="rounded-3xl overflow-hidden shadow-2xl group">
                   <img
-                    src="/national-museum-jos-cultural-artifacts.jpg"
+                    src="/visit-wildlife-renamed/jos-wildlife-20251204-090246-3.jpg"
                     alt="Culture & Tourism CDS"
                     className="w-full h-[500px] object-cover transition-transform duration-700 group-hover:scale-110"
                   />

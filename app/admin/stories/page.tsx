@@ -15,6 +15,7 @@ import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock,
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import StoryEditor from '@/components/admin/story-editor'
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
@@ -48,6 +49,7 @@ export default function StoriesPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [newStory, setNewStory] = useState({ title: "", content: "", excerpt: "", category: "experience" })
   // author/profile resolution removed
 
@@ -363,7 +365,7 @@ export default function StoriesPage() {
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => router.push(`/admin/stories/${story.id}`)}>
+                          <DropdownMenuItem onClick={() => setEditingId(story.id)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
@@ -495,6 +497,26 @@ export default function StoriesPage() {
                     <Button>Approve</Button>
                   </div>
                 )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+        {/* Edit Story Dialog (inline editor) */}
+        <Dialog open={!!editingId} onOpenChange={(open) => { if (!open) setEditingId(null) }}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Story</DialogTitle>
+            </DialogHeader>
+            {editingId && (
+              <div className="py-2">
+                <StoryEditor
+                  id={editingId}
+                  onSaved={() => {
+                    setEditingId(null)
+                    fetchStories()
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
               </div>
             )}
           </DialogContent>

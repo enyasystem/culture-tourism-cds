@@ -41,7 +41,7 @@ export default function AboutPage() {
 
               <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
                 <div className="rounded-3xl overflow-hidden shadow-lg">
-                  <img src="/national-museum-jos-cultural-artifacts.jpg" alt="National Museum" className="w-full h-64 object-cover" />
+                  <img src="/visit-wildlife-renamed/jos-wildlife-20251204-090246-3.jpg" alt="National Museum" className="w-full h-64 object-cover" />
                 </div>
                 <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                   <div>
@@ -60,11 +60,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="mt-12">
-              <Link href="/auth/signup">
-                <button className="bg-[#1A7B7B] text-white px-10 py-3 rounded-full font-semibold hover:bg-[#156666] transition-all duration-300">Join the Community</button>
-              </Link>
-            </div>
+           
           </div>
         </div>
       </section>
