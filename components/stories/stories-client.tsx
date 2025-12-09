@@ -148,6 +148,20 @@ export function StoriesClient({ initialStories }: { initialStories: Story[] }) {
   const totalComments = stories.reduce((sum: number, story: Story) => sum + (story.comments || 0), 0)
   const featuredStory = stories[0]
 
+  // normalize images for client-side rendered stories in case the API returns strings
+  // We'll lazy-import the helper to keep bundle size small
+  useEffect(() => {
+    let mounted = true
+    if (!mounted) return
+    ;(async () => {
+      const mod = await import('@/lib/image-utils')
+      if (!mounted) return
+      setStories((prev) => prev.map((s) => ({ ...s, images: mod.normalizeImages(s.images ?? null, s.cover_image) })))
+      setFilteredStories((prev) => prev.map((s) => ({ ...s, images: mod.normalizeImages(s.images ?? null, s.cover_image) })))
+    })()
+    return () => { mounted = false }
+  }, [])
+
   const showStories = isStoriesVisible || filteredStories.length > 0
 
   if (isLoading && stories.length === 0) {

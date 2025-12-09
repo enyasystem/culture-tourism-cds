@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
+import { uploadBufferToVercel } from '@/lib/storage/vercel'
 
 export const runtime = 'nodejs'
 
+// Handle CORS preflight from browsers (OPTIONS)
+export async function OPTIONS() {
+  return NextResponse.json(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-filename, x-admin-debug',
+    },
+  })
+}
+
 export async function POST(req: Request) {
+  try {
+    console.debug('[api/admin/uploads] incoming request method: POST')
+  } catch {}
   try {
     const incomingDebug = req.headers.get('x-admin-debug') === '1'
     const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'stories'
@@ -28,7 +44,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File too large', code: 'FILE_TOO_LARGE', message: msg }, { status: 413 })
     }
 
-    // Use admin client (service role) for storage upload
+    // If a Vercel blob write token is configured, prefer uploading to Vercel Blob storage.
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const vercelUrl = await uploadBufferToVercel(body, path, contentType)
+        return NextResponse.json({ success: true, publicUrl: vercelUrl, message: 'Upload complete (vercel blob)' })
+      } catch (err: any) {
+        console.error('[api/admin/uploads] Vercel blob upload failed', err)
+        if (incomingDebug) {
+          const diagnostics = { message: String(err?.message || err), stack: err?.stack }
+          return NextResponse.json({ success: false, backend: 'vercel', diagnostics }, { status: 500 })
+        }
+        // fall through to supabase path as a fallback
+      }
+    }
+
+    // Use admin client (service role) for storage upload (fallback)
     const serverSupabase = await createAdminClient()
 
     // Upload using SDK's storage API (admin client uses service role key)

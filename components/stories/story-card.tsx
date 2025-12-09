@@ -8,6 +8,7 @@ import { Heart, MessageCircle, Share2, MapPin, Calendar, Bookmark } from "lucide
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { normalizeImages } from '@/lib/image-utils'
 
 interface StoryCardProps {
   story: {
@@ -54,15 +55,8 @@ export function StoryCard({ story }: StoryCardProps) {
     return date.toLocaleDateString()
   }
 
-  // normalize optional arrays to avoid TS 'possibly undefined' checks in JSX
-  let images = story.images ?? []
-  // If cover_image exists and is not already the first image, make it first
-  if (story.cover_image && images.length > 0 && images[0] !== story.cover_image) {
-    images = images.filter(img => img !== story.cover_image)
-    images.unshift(story.cover_image)
-  } else if (story.cover_image && images.length === 0) {
-    images = [story.cover_image]
-  }
+  // normalize images reliably (handles arrays, JSON-strings, single strings)
+  const images = normalizeImages(story.images, story.cover_image)
   const tags = story.tags ?? []
 
   // determine if we have author info to show
