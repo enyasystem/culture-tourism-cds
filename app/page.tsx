@@ -595,28 +595,42 @@ export default function HomePage() {
                   }`}
                   style={{ transitionDelay: `${200 + index * 100}ms` }}
                 >
-                  <div className={`bg-gradient-to-br ${tribe.color} rounded-3xl p-8 text-white shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col justify-between`}>
-                    <div>
-                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
-                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z"
-                          />
-                        </svg>
+                  <div className="relative h-[320px] preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
+                    {/* Front Face */}
+                    <div className={`absolute inset-0 backface-hidden bg-gradient-to-br ${tribe.color} rounded-3xl p-8 text-white shadow-lg flex flex-col justify-between cursor-pointer transition-all duration-500 hover:shadow-2xl`}>
+                      <div>
+                        <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
+                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z"
+                            />
+                          </svg>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3">{tribe.name}</h3>
+                        <p className="text-white/90 mb-4">{tribe.description}</p>
                       </div>
-                      <h3 className="text-2xl font-bold mb-4">{tribe.name}</h3>
-                      <p className="text-white/90 text-sm leading-relaxed">{tribe.description}</p>
+                      <div className="mt-6 pt-6 border-t border-white/20">
+                        <button className="text-white font-semibold w-full bg-white/10 py-2 rounded-full hover:bg-white/20 transition-all duration-300">Discover More</button>
+                      </div>
                     </div>
-                    <div className="mt-6 pt-6 border-t border-white/20">
-                      <button className="text-white font-semibold flex items-center gap-2 group/btn transition-all duration-300 hover:translate-x-1">
-                        <span>Learn More</span>
-                        <svg className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
+
+                    {/* Back Face */}
+                    <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl p-8 shadow-lg flex flex-col justify-between border-2 border-[#1A7B7B]">
+                      <div>
+                        <h3 className="text-2xl font-bold text-[#1A7B7B] mb-4">{tribe.name}</h3>
+                        <p className="text-gray-700 mb-4">{tribe.description}</p>
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-700">Learn about traditions, festivals and crafts.</div>
+                        </div>
+                      </div>
+                      <Link href="/tribes" className="w-full">
+                        <button className="w-full bg-[#1A7B7B] text-white py-3 rounded-full font-semibold hover:bg-[#156666] transition-all duration-300 hover:scale-105">
+                          Explore Now
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
