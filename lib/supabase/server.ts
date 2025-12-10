@@ -1,6 +1,17 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+// Silence debug logs on the server in production so logs remain clean.
+if (process.env.NODE_ENV === 'production') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    console.debug = () => {}
+  } catch (e) {
+    // ignore
+  }
+}
+
 /**
  * Especially important if using Fluid compute: Don't put this client in a
  * global variable. Always create a new client within each function when using
