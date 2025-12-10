@@ -22,6 +22,15 @@ export async function POST(req: Request) {
   } catch {}
   try {
     const incomingDebug = req.headers.get('x-admin-debug') === '1'
+    if (incomingDebug) {
+      try {
+        const masked = process.env.SUPABASE_SERVICE_ROLE_KEY ? `${String(process.env.SUPABASE_SERVICE_ROLE_KEY).slice(0,4)}...${String(process.env.SUPABASE_SERVICE_ROLE_KEY).slice(-4)}` : 'MISSING'
+        console.debug('[api/admin/uploads] x-admin-debug=1 enabled; SUPABASE_SERVICE_ROLE_KEY (masked):', masked)
+        console.debug('[api/admin/uploads] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      } catch (dE) {
+        console.debug('[api/admin/uploads] debug log failed', dE)
+      }
+    }
     const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'stories'
 
     // Expect filename and content-type headers from the client
@@ -60,7 +69,14 @@ export async function POST(req: Request) {
     }
 
     // Use admin client (service role) for storage upload (fallback)
-    const serverSupabase = await createAdminClient()
+    let serverSupabase: any = null
+    try {
+      serverSupabase = await createAdminClient()
+    } catch (svcErr) {
+      console.error('[api/admin/uploads] failed to create admin client', svcErr)
+      if (incomingDebug) return NextResponse.json({ error: 'Failed to create admin client', diagnostics: String(svcErr?.message || svcErr) }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create admin client' }, { status: 500 })
+    }
 
     // Upload using SDK's storage API (admin client uses service role key)
     const { error: uploadError } = await serverSupabase.storage.from(BUCKET).upload(path, body, {
