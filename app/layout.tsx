@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth/auth-provider"
 import ToastProvider from "@/components/ui/toast"
 import "./globals.css"
+import DisableDebugClient from "@/components/disable-debug-client"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -75,6 +76,7 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <AuthProvider>
           <ToastProvider>
+            <DisableDebugClient />
             <Suspense fallback={null}>{children}</Suspense>
           </ToastProvider>
         </AuthProvider>
