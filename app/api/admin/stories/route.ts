@@ -335,6 +335,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'An unexpected database error occurred. Enable x-admin-debug=1 for more details (server-only).' }, { status: resp.status })
     }
     const created = await resp.json()
+    if (incomingDebug) {
+      try {
+        console.debug('[api/admin/stories] PostgREST created response:', created)
+      } catch (dE) {
+        console.debug('[api/admin/stories] failed to log created response', dE)
+      }
+    }
     const item = created && created[0] ? created[0] : null
     const normalizedItem = item
       ? {

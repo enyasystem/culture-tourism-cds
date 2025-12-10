@@ -109,9 +109,13 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
           .replace(/^-+|-+$/g, "")
           .slice(0, 200)
 
-      // upload files if any and not already uploaded
-      if (selectedFiles.length > 0 && uploadedUrls.length === 0) {
-        await uploadAllFiles()
+      // upload files if any and not already uploaded. Use the returned URLs
+      // directly instead of relying on React state updates (which are async).
+      let finalUploadedUrls: string[] = uploadedUrls
+      if (selectedFiles.length > 0 && (uploadedUrls.length === 0)) {
+        finalUploadedUrls = await uploadAllFiles() as string[]
+        // ensure state is updated for UI
+        setUploadedUrls(finalUploadedUrls || [])
       }
 
       const payload: any = {
@@ -121,15 +125,23 @@ export default function StoryForm({ onCreated, onCancel }: { onCreated?: () => v
         published: false,
       }
 
-      if (uploadedUrls.length > 0) {
-        payload.images = uploadedUrls
+      if (finalUploadedUrls && finalUploadedUrls.length > 0) {
+        payload.images = finalUploadedUrls
         const coverIdx = selectedCoverIndex !== null ? selectedCoverIndex : 0
-        if (uploadedUrls[coverIdx]) payload.cover_image = uploadedUrls[coverIdx]
+        if (finalUploadedUrls[coverIdx]) payload.cover_image = finalUploadedUrls[coverIdx]
+      }
+
+      // Debug: log payload and uploaded URLs so developer can inspect outgoing request
+      try {
+        console.debug('[story-form] outgoing payload:', payload)
+        console.debug('[story-form] uploadedUrls:', uploadedUrls)
+      } catch (e) {
+        console.debug('[story-form] debug log failed', e)
       }
 
       const resp = await fetch(`/api/admin/stories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-admin-debug": "1" },
         body: JSON.stringify(payload),
       })
 

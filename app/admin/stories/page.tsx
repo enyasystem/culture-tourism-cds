@@ -18,6 +18,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import StoryEditor from '@/components/admin/story-editor'
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import StoryForm from "@/components/admin/story-form"
 
 interface Story {
   id: string
@@ -164,65 +165,7 @@ export default function StoriesPage() {
               <DialogHeader>
                 <DialogTitle>Add New Story...</DialogTitle>
               </DialogHeader>
-                <div className="space-y-3">
-                <div>
-                  <Label>Title</Label>
-                  <Input value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Excerpt</Label>
-                  <Input value={newStory.excerpt} onChange={(e) => setNewStory({ ...newStory, excerpt: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Content</Label>
-                  <Textarea value={newStory.content} onChange={(e) => setNewStory({ ...newStory, content: e.target.value })} />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-                  <Button
-                    onClick={async () => {
-                      try {
-                        // generate slug like the modal does
-                        const slugify = (s: string) =>
-                          s
-                            .toLowerCase()
-                            .trim()
-                            .replace(/[^a-z0-9]+/g, "-")
-                            .replace(/^-+|-+$/g, "")
-                            .slice(0, 200)
-
-                        const payload = {
-                          ...newStory,
-                          slug: slugify(newStory.title || "untitled"),
-                        }
-
-                        const resp = await fetch(`/api/admin/stories`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json", "x-admin-debug": "1" },
-                          body: JSON.stringify(payload),
-                        })
-                        if (resp.status === 201) {
-                          toast({ title: "Created", description: "Story created", variant: "success" })
-                          setIsCreateOpen(false)
-                          setNewStory({ title: "", content: "", excerpt: "", category: "experience" })
-                          fetchStories()
-                        } else {
-                          const data = await resp.json().catch(async () => ({ raw: await resp.text() }))
-                          // If server included diagnostics, show it in toast and console
-                          console.error('Create failed (inline dialog)', { status: resp.status, data })
-                          const msg = data?.error || data?.raw || JSON.stringify(data)
-                          toast({ title: "Failed", description: String(msg).slice(0, 200), variant: "error" })
-                        }
-                      } catch (err) {
-                        console.error(err)
-                        toast({ title: "Error", description: String(err), variant: "error" })
-                      }
-                    }}
-                  >
-                    Create
-                  </Button>
-                </div>
-              </div>
+              <StoryForm onCreated={() => { setIsCreateOpen(false); fetchStories() }} onCancel={() => setIsCreateOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>

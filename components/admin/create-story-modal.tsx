@@ -90,9 +90,15 @@ export default function CreateStoryModal({ onCreated }: { onCreated?: () => void
         cover_image: coverImageUrl,
       }
 
+      try {
+        console.debug('[create-story-modal] outgoing payload:', payload)
+      } catch (e) {
+        console.debug('[create-story-modal] debug log failed', e)
+      }
+
       const resp = await fetch(`/api/admin/stories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-admin-debug": "1" },
         body: JSON.stringify(payload),
       })
       if (resp.status === 201) {

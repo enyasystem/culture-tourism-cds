@@ -1,11 +1,36 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
+import { uploadBufferToVercel } from '@/lib/storage/vercel'
 
 export const runtime = 'nodejs'
 
+// Handle CORS preflight from browsers (OPTIONS)
+export async function OPTIONS() {
+  return NextResponse.json(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-filename, x-admin-debug',
+    },
+  })
+}
+
 export async function POST(req: Request) {
   try {
+    console.debug('[api/admin/uploads] incoming request method: POST')
+  } catch {}
+  try {
     const incomingDebug = req.headers.get('x-admin-debug') === '1'
+    if (incomingDebug) {
+      try {
+        const masked = process.env.SUPABASE_SERVICE_ROLE_KEY ? `${String(process.env.SUPABASE_SERVICE_ROLE_KEY).slice(0,4)}...${String(process.env.SUPABASE_SERVICE_ROLE_KEY).slice(-4)}` : 'MISSING'
+        console.debug('[api/admin/uploads] x-admin-debug=1 enabled; SUPABASE_SERVICE_ROLE_KEY (masked):', masked)
+        console.debug('[api/admin/uploads] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      } catch (dE) {
+        console.debug('[api/admin/uploads] debug log failed', dE)
+      }
+    }
     const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'stories'
 
     // Expect filename and content-type headers from the client
@@ -28,8 +53,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File too large', code: 'FILE_TOO_LARGE', message: msg }, { status: 413 })
     }
 
-    // Use admin client (service role) for storage upload
-    const serverSupabase = await createAdminClient()
+    // If a Vercel blob write token is configured, prefer uploading to Vercel Blob storage.
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const vercelUrl = await uploadBufferToVercel(body, path, contentType)
+        return NextResponse.json({ success: true, publicUrl: vercelUrl, message: 'Upload complete (vercel blob)' })
+      } catch (err: any) {
+        console.error('[api/admin/uploads] Vercel blob upload failed', err)
+        if (incomingDebug) {
+          const diagnostics = { message: String(err?.message || err), stack: err?.stack }
+          return NextResponse.json({ success: false, backend: 'vercel', diagnostics }, { status: 500 })
+        }
+        // fall through to supabase path as a fallback
+      }
+    }
+
+    // Use admin client (service role) for storage upload (fallback)
+    let serverSupabase: any = null
+    try {
+      serverSupabase = await createAdminClient()
+    } catch (svcErr) {
+      console.error('[api/admin/uploads] failed to create admin client', svcErr)
+      if (incomingDebug) return NextResponse.json({ error: 'Failed to create admin client', diagnostics: String(svcErr?.message || svcErr) }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create admin client' }, { status: 500 })
+    }
 
     // Upload using SDK's storage API (admin client uses service role key)
     const { error: uploadError } = await serverSupabase.storage.from(BUCKET).upload(path, body, {

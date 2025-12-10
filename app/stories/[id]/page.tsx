@@ -77,20 +77,33 @@ export default async function StoryDetailPage({ params }: { params: { id: string
 
     const story: any = data
 
-    // Build images array with cover_image first if it exists
-    let images: string[] = Array.isArray(story.images)
-      ? story.images
-      : story.images
-      ? [story.images]
-      : story.cover_image
-      ? [story.cover_image]
-      : []
+    // Build images array with cover_image first if it exists.
+    // Normalize a few possible shapes stored in the DB:
+    // - proper JSON array (Array)
+    // - single string ("/path.jpg")
+    // - JSON-stringified array ("["/a.jpg","/b.jpg"]")
+    let images: string[] = []
 
-    // If cover_image exists and is not already the first image, make it first
+    if (Array.isArray(story.images)) {
+      images = story.images
+    } else if (typeof story.images === 'string') {
+      // Try parsing JSON-stringified arrays, otherwise treat as single image string
+      try {
+        const parsed = JSON.parse(story.images)
+        images = Array.isArray(parsed) ? parsed : [story.images]
+      } catch (e) {
+        images = [story.images]
+      }
+    }
+
+    // If we still have no images, fall back to cover_image
+    if (images.length === 0 && story.cover_image) {
+      images = [story.cover_image]
+    }
+
+    // Ensure cover_image appears first in the list
     if (story.cover_image && images.length > 0 && images[0] !== story.cover_image) {
-      // Remove cover_image from array if it exists elsewhere
       images = images.filter(img => img !== story.cover_image)
-      // Add it to the beginning
       images.unshift(story.cover_image)
     }
 

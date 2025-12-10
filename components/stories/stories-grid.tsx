@@ -36,13 +36,14 @@ export function StoriesGrid({ visible }: { visible?: boolean }) {
         // Accept either an array (public endpoint) or { data: [] } (admin-style)
         const data = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
         if (!mounted) return
+        const { normalizeImages } = await import('@/lib/image-utils')
         setStories(
           data.map((row: any) => ({
             id: row.id,
             title: row.title,
             content: row.summary || row.excerpt || row.body || row.content || '',
             cover_image: row.cover_image,
-            images: Array.isArray(row.images) ? row.images : row.images ? [row.images] : row.cover_image ? [row.cover_image] : row.image_url ? [row.image_url] : [],
+            images: normalizeImages(row.images ?? row.image_url ?? null, row.cover_image),
             excerpt: row.summary || row.excerpt || null,
           }))
         )
