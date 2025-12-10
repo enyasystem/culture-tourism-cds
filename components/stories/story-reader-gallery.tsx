@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import useEmblaCarousel from 'embla-carousel-react'
 
 type Props = {
   images: string[]
@@ -32,33 +31,23 @@ export default function StoryReaderGallery({ images, alt }: Props) {
       <div className="mt-3 flex flex-col items-center gap-2">
         <div className="text-sm text-muted-foreground">{alt ? alt : `Image ${index + 1} of ${images.length}`}</div>
         {images.length > 1 && (
-          <div className="flex items-center gap-2 mt-1">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setIndex(i); setOpen(true) }}
-                aria-label={`Select image ${i + 1}`}
-                className={`w-2 h-2 rounded-full transition-all ${i === index ? 'bg-primary' : 'bg-muted'}`}
-              />
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2 w-full">
+            {images.map((src, i) => (
+              <button key={i} onClick={() => setIndex(i)} className={`relative overflow-hidden rounded-md border ${i === index ? 'ring-2 ring-primary' : ''}`} aria-label={`Select image ${i + 1}`}>
+                <img src={src} alt={`thumb-${i}`} className="h-20 w-full object-cover" />
+              </button>
             ))}
           </div>
         )}
       </div>
 
       {open && (
-        <Lightbox
-          images={images}
-          index={index}
-          onClose={() => setOpen(false)}
-          onIndexChange={(i: number) => setIndex(i)}
-          alt={alt}
-        />
+        <GalleryModal images={images} index={index} onClose={() => setOpen(false)} onIndexChange={(i: number) => setIndex(i)} alt={alt} />
       )}
     </div>
   )
 }
-
-function Lightbox({ images, index, onClose, onIndexChange, alt }: {
+function GalleryModal({ images, index, onClose, onIndexChange, alt }: {
   images: string[]
   index: number
   onClose: () => void
@@ -66,45 +55,23 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
   alt?: string
 }) {
   const [i, setI] = useState(index)
-  const [emblaRef, embla] = useEmblaCarousel({ loop: false })
 
-  // Handle index changes and sync with embla
-  const handleSetIndex = (next: number) => {
-    const wrapped = (next + images.length) % images.length
-    setI(wrapped)
-    onIndexChange(wrapped)
-    if (embla) {
-      embla.scrollTo(wrapped, false)
-    }
-  }
+  useEffect(() => setI(index), [index])
 
-  // keyboard handlers
   useEffect(() => {
     if (typeof window === 'undefined') return
     const handle = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft') handleSetIndex(i - 1)
-      if (e.key === 'ArrowRight') handleSetIndex(i + 1)
+      if (e.key === 'ArrowLeft') setI((s) => Math.max(0, s - 1))
+      if (e.key === 'ArrowRight') setI((s) => Math.min(images.length - 1, s + 1))
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [i, onClose, images.length])
+  }, [onClose, images.length])
 
-  // sync embla selection with internal index
   useEffect(() => {
-    if (!embla) return
-    const onSelect = () => {
-      const sel = embla.selectedScrollSnap()
-      setI(sel)
-      onIndexChange(sel)
-    }
-    embla.on('select', onSelect)
-    // jump to initial index when mounted
-    embla.scrollTo(index, false)
-    return () => {
-      embla.off('select', onSelect)
-    }
-  }, [embla, index, onIndexChange])
+    onIndexChange(i)
+  }, [i, onIndexChange])
 
   return (
     <div data-lightbox onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
@@ -116,35 +83,27 @@ function Lightbox({ images, index, onClose, onIndexChange, alt }: {
         ✕
       </button>
 
-      <button
-        className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
-        onClick={(e) => { e.stopPropagation(); handleSetIndex(i - 1) }}
-        aria-label="Previous"
-      >
-        ‹
-      </button>
+      <div onClick={(e) => e.stopPropagation()} className="max-w-[90vw] max-h-[90vh] w-full flex items-center justify-center">
+        <button
+          className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
+          onClick={(e) => { e.stopPropagation(); setI((s) => Math.max(0, s - 1)) }}
+          aria-label="Previous"
+        >
+          ‹
+        </button>
 
-      <div onClick={(e) => e.stopPropagation()} className="max-w-[90vw] max-h-[90vh] w-full">
-        <div className="embla w-full">
-          <div ref={emblaRef} className="embla__viewport overflow-hidden">
-            <div className="embla__container flex transition-transform duration-300 ease-in-out">
-              {images.map((src, idx) => (
-                <div key={idx} className="embla__slide flex-shrink-0 w-full flex items-center justify-center">
-                  <Image src={src} alt={alt ?? `image-${idx}`} width={1600} height={1000} className="object-contain max-w-full max-h-[90vh]" />
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="w-full flex items-center justify-center">
+          <Image src={images[i]} alt={alt ?? `image-${i}`} width={1600} height={1000} className="object-contain max-w-full max-h-[80vh] rounded-md" />
         </div>
-      </div>
 
-      <button
-        className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
-        onClick={(e) => { e.stopPropagation(); handleSetIndex(i + 1) }}
-        aria-label="Next"
-      >
-        ›
-      </button>
+        <button
+          className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 z-10"
+          onClick={(e) => { e.stopPropagation(); setI((s) => Math.min(images.length - 1, s + 1)) }}
+          aria-label="Next"
+        >
+          ›
+        </button>
+      </div>
     </div>
   )
 }
