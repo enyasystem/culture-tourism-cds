@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import StoryEditor from '@/components/admin/story-editor'
 import { Search, Filter, MoreHorizontal, Plus, Eye, Edit, Trash2, Camera, Clock, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
@@ -45,6 +46,7 @@ export default function StoriesPage() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showStoryForm, setShowStoryForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   // author/profile resolution removed
@@ -312,7 +314,7 @@ export default function StoriesPage() {
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => router.push(`/admin/stories/${story.id}`)}>
+                          <DropdownMenuItem onClick={() => setEditingId(story.id)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
@@ -445,6 +447,19 @@ export default function StoriesPage() {
                     <Button>Approve</Button>
                   </div>
                 )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+        {/* Edit Story Dialog (inline editor) */}
+        <Dialog open={!!editingId} onOpenChange={(open) => { if (!open) setEditingId(null) }}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Story</DialogTitle>
+            </DialogHeader>
+            {editingId && (
+              <div className="py-2">
+                <StoryEditor id={editingId} onSaved={() => { setEditingId(null); fetchStories() }} onCancel={() => setEditingId(null)} />
               </div>
             )}
           </DialogContent>

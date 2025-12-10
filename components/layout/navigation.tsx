@@ -156,6 +156,9 @@ export function Navigation() {
               <Link href="/events" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B] cursor-pointer">
                 Cultural Events
               </Link>
+              <Link href="/tribes" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B] cursor-pointer">
+                Tribes of Plateau
+              </Link>
               <Link href="/stories" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-black py-2 hover:text-[#1A7B7B] cursor-pointer">
                 CDS Stories
               </Link>
