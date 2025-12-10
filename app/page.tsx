@@ -199,10 +199,10 @@ export default function HomePage() {
 
         {/* Content Container */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-          {/* Debug badge: shows whether admin hero is active */}
+          {/* Debug badge: shows whether admin hero is active
           <div className="absolute right-6 top-6 bg-white/80 text-sm text-gray-800 px-3 py-1 rounded-full shadow-md">
             {heroSource === 'admin' ? 'Hero: Admin' : heroSource === 'default' ? 'Hero: Default' : 'Hero: None'}
-          </div>
+          </div> */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-8rem)]">
             {/* Left Side - Text Content */}
             <div
